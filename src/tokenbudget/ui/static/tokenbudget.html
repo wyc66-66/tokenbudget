@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TokenBudget · visual-token budget vs perception</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --panel: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e3e1dc;
+    --accent: #c05621;
+    --accent2: #2f5d8a;
+    --robust: #3f7d4e;
+    --fragile: #b03a2e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  header {
+    background: linear-gradient(180deg, #26261f, #1d1d17);
+    color: #f2efe9; padding: 34px 40px 26px;
+  }
+  header h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: .2px; }
+  header p { margin: 8px 0 0; color: #b9b4a8; max-width: 860px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 80px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .card h3 { margin: 0 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); font-weight: 600; }
+  .card .big { font-size: 26px; font-weight: 700; margin-top: 2px; }
+  .card .sub { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  section { margin-top: 34px; }
+  section h2 { font-size: 19px; margin: 0 0 6px; }
+  section .note { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+  .chart-box { width: 100%; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .tag.robust { background: #e4efe6; color: var(--robust); }
+  .tag.fragile { background: #f7e4e2; color: var(--fragile); }
+  .tag.mixed { background: #f3ead9; color: #8a6d1f; }
+  .badge { font-size: 12px; color: var(--muted); }
+  .row { display: flex; gap: 18px; flex-wrap: wrap; }
+  .row > div { flex: 1 1 320px; }
+  #status { font-size: 12.5px; color: var(--muted); }
+  #status.error { color: var(--fragile); }
+  select, button {
+    font: inherit; padding: 6px 10px; border: 1px solid var(--line);
+    border-radius: 6px; background: #fff; color: var(--ink); cursor: pointer;
+  }
+  button { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button:hover { filter: brightness(1.06); }
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .mini { font-size: 12px; color: var(--muted); }
+  .cliff-detail { font-size: 13px; color: var(--ink); background: #faf8f4; border: 1px dashed var(--line); padding: 8px 12px; border-radius: 6px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>TokenBudget</h1>
+  <p>How the visual-token budget of an edge MLLM (MiniCPM-V 4.6) changes what it can see.
+  We sweep <b>downsample mode</b> (4x/16x) &times; <b>input resolution</b> (448/672/1280 px) and
+  measure accuracy across eight perception tasks with known ground truth.</p>
+</header>
+
+<main>
+  <div class="cards">
+    <div class="card">
+      <h3>Configurations</h3>
+      <div class="big" id="cfgCount">–</div>
+      <div class="sub">downsample &times; resolution</div>
+    </div>
+    <div class="card">
+      <h3>Budget range</h3>
+      <div class="big" id="budgetRange">–</div>
+      <div class="sub">vision tokens, min → max</div>
+    </div>
+    <div class="card">
+      <h3>Budget-sensitive tasks</h3>
+      <div class="big" id="sensitiveCount">–</div>
+      <div class="sub">with a detected cliff</div>
+    </div>
+    <div class="card">
+      <h3>Robust tasks</h3>
+      <div class="big" id="robustCount">–</div>
+      <div class="sub">flat across budget</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Budget table</h2>
+    <p class="note">Effective vision-token count per configuration, measured from the model itself.</p>
+    <div class="panel"><div id="budgetChart" class="chart-box"></div></div>
+  </section>
+
+  <section>
+    <h2>Decay curves</h2>
+    <p class="note">Accuracy per vision-token budget, one line per difficulty level. A red dashed line marks the detected cliff (first step where accuracy drops by ≥15 points and ≥20 points below the richest budget).</p>
+    <div class="panel">
+      <div class="controls">
+        <select id="familySelect"></select>
+        <button id="resetBtn">reset zoom</button>
+        <span class="badge" id="familyMeta"></span>
+      </div>
+      <div class="legend" id="diffLegend"></div>
+      <div id="decayChart" class="chart-box"></div>
+      <div id="cliffBox" class="cliff-detail"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Budget-sensitivity ranking</h2>
+    <p class="note">Difference between best- and worst-budget accuracy, aggregated across difficulties. Coarse tasks should sit near 0 (robust); per-element tasks should sit higher (fragile).</p>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Task</th><th>Range</th><th>Best budget acc</th><th>Worst budget acc</th><th>Cliff</th><th>Verdict</th></tr></thead>
+        <tbody id="rankBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>What we claim</h2>
+    <p class="note">Verifiable statements drawn from the sweep table; every number can be traced to <code>data/sweep/sweep.json</code>.</p>
+    <div class="panel" id="facts"></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const FAMILY_NAMES = {
+  ocr: "digit reading", count: "counting", mlread: "targeted line reading",
+  colcnt: "per-element color counting", spatial: "spatial layout",
+  color: "fine hue", detail: "gap detection", ringgap: "ring-gap detection",
+};
+const FAMILY_COLORS = {
+  ocr: "#5f8db8", count: "#7fa86a", mlread: "#c8a44c", colcnt: "#c0585a",
+  spatial: "#8a6fb8", color: "#d08ab4", detail: "#5f9e9e", ringgap: "#e08a3c",
+};
+
+let sweepData = null, decayData = null, familyChart = null, budgetChart = null;
+
+async function load() {
+  const status = document.getElementById("status");
+  try {
+    const [s, d] = await Promise.all([
+      fetch("/api/tokenbudget/sweep.json").then(r => r.json()),
+      fetch("/api/tokenbudget/decay.json").then(r => r.json()),
+    ]);
+    sweepData = s; decayData = d;
+    renderCards(); renderBudgetTable(); renderFamilySelect(); renderRanking(); renderFacts();
+  } catch (e) {
+    status.textContent = "Could not load sweep data — run scripts/run_sweep.py first.";
+    status.className = "error";
+  }
+}
+
+function renderCards() {
+  const bt = sweepData.budget_table;
+  const nCfg = Object.keys(bt).length;
+  const toks = Object.values(bt).map(b => b.vision_tokens);
+  document.getElementById("cfgCount").textContent = nCfg;
+  document.getElementById("budgetRange").textContent = `${Math.min(...toks)} → ${Math.max(...toks)}`;
+  const sum = decayData.summary;
+  let sens = 0, robust = 0;
+  for (const fam of Object.keys(sum)) {
+    if (sum[fam].sensitive_difficulties >= 1 && sum[fam].cliff) sens++;
+    else if (sum[fam].range < 0.15) robust++;
+  }
+  document.getElementById("sensitiveCount").textContent = sens;
+  document.getElementById("robustCount").textContent = robust;
+}
+
+function renderBudgetTable() {
+  const bt = sweepData.budget_table;
+  const labels = Object.keys(bt);
+  const vals = labels.map(k => bt[k].vision_tokens);
+  if (budgetChart) budgetChart.destroy();
+  budgetChart = new Chart(document.getElementById("budgetChart"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: vals,
+        backgroundColor: labels.map(l => l.startsWith("4x") ? "#8a4f34" : "#b98f66"),
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => `${c.parsed.y} vision tokens` } },
+      },
+      scales: { y: { title: { display: true, text: "vision tokens" } } },
+    },
+  });
+}
+
+function renderFamilySelect() {
+  const sel = document.getElementById("familySelect");
+  sel.innerHTML = "";
+  for (const fam of Object.keys(decayData.curves).sort()) {
+    const opt = document.createElement("option");
+    opt.value = fam;
+    opt.textContent = `${FAMILY_NAMES[fam] || fam} (${fam})`;
+    sel.appendChild(opt);
+  }
+  sel.onchange = () => renderDecay(sel.value);
+  renderDecay(sel.value);
+}
+
+function renderDecay(fam) {
+  const curves = decayData.curves[fam];
+  const diffs = Object.keys(curves).sort((a, b) => +a - +b);
+  const first = curves[diffs[0]];
+  const budgets = first.budgets;
+  const axes = first.budget_axis;
+
+  // legend
+  const lg = document.getElementById("diffLegend");
+  lg.innerHTML = "";
+  for (const d of diffs) {
+    const s = document.createElement("span");
+    const c = d3color(+d, diffs.length);
+    s.style.color = c;
+    s.innerHTML = `<span style="background:${c}"></span>difficulty ${d}`;
+    lg.appendChild(s);
+  }
+
+  // cliff info
+  const cliffBox = document.getElementById("cliffBox");
+  const sum = decayData.summary[fam];
+  if (sum.cliff) {
+    const c = sum.cliff;
+    cliffBox.innerHTML = `<b>Cliff:</b> accuracy drops ${(c.drop * 100).toFixed(0)} points (${(c.acc_before * 100).toFixed(0)}% → ${(c.acc_after * 100).toFixed(0)}%) at budget <b>${c.at}</b>.`;
+  } else {
+    cliffBox.innerHTML = `<b>No cliff detected</b> — the family stays within ±15 points across the whole budget range.`;
+  }
+  document.getElementById("familyMeta").textContent =
+    `difficulties: ${diffs.length} · best-acc range ${(sum.range * 100).toFixed(0)} pts`;
+
+  if (familyChart) familyChart.destroy();
+  const datasets = diffs.map(d => {
+    const c = curves[d];
+    return {
+      label: `diff ${d}`,
+      data: c.budget_axis.map((x, i) => ({ x, y: c.acc[i] })),
+      borderColor: d3color(+d, diffs.length),
+      backgroundColor: d3color(+d, diffs.length),
+      pointRadius: 4, pointHoverRadius: 6, borderWidth: 2, tension: 0.12,
+    };
+  });
+  // cliff vertical line at aggregated cliff
+  const cl = sum.cliff;
+  if (cl && first.budget_axis.length) {
+    const idx = budgets.indexOf(cl.at);
+    if (idx >= 0) {
+      datasets.push({
+        label: "cliff",
+        data: [{ x: first.budget_axis[idx], y: 0 }, { x: first.budget_axis[idx], y: 1 }],
+        borderColor: "#b03a2e", borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0,
+      });
+    }
+  }
+  familyChart = new Chart(document.getElementById("decayChart"), {
+    type: "scatter",
+    data: { datasets },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          type: "logarithmic",
+          title: { display: true, text: "vision tokens (log, ← lower budget)" },
+          min: Math.min(...axes) * 0.7,
+          max: Math.max(...axes) * 1.3,
+        },
+        y: { min: 0, max: 1, title: { display: true, text: "accuracy" } },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${(c.parsed.y * 100).toFixed(0)}% @ ${c.parsed.x} tokens` } },
+      },
+    },
+  });
+}
+
+function d3color(d, n) {
+  if (n <= 1) return "#c05621";
+  const hue = 12 + (d / (n - 1)) * 210;
+  return `hsl(${hue.toFixed(0)}, 62%, 42%)`;
+}
+
+function renderRanking() {
+  const sum = decayData.summary;
+  const rows = Object.keys(sum).map(fam => ({ fam, ...sum[fam] }))
+    .sort((a, b) => b.range - a.range);
+  const tbody = document.getElementById("rankBody");
+  tbody.innerHTML = "";
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    const verdict = r.range >= 0.15 && r.cliff
+      ? '<span class="tag fragile">fragile</span>'
+      : r.range >= 0.15
+        ? '<span class="tag mixed">mixed</span>'
+        : '<span class="tag robust">robust</span>';
+    const cliffTxt = r.cliff
+      ? `${r.cliff.at} (${(r.cliff.drop * 100).toFixed(0)}pt drop)`
+      : "—";
+    tr.innerHTML = `
+      <td><b>${FAMILY_NAMES[r.fam] || r.fam}</b> <span class="badge">${r.fam}</span></td>
+      <td>${(r.range * 100).toFixed(0)} pts</td>
+      <td>${(r.best_acc * 100).toFixed(0)}%</td>
+      <td>${(r.worst_acc * 100).toFixed(0)}%</td>
+      <td>${cliffTxt}</td>
+      <td>${verdict}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+function renderFacts() {
+  const sum = decayData.summary;
+  const bt = sweepData.budget_table;
+  const toks = Object.values(bt).map(b => b.vision_tokens);
+  const facts = [];
+  facts.push(`Budget spans <b>${Math.min(...toks)}</b> to <b>${Math.max(...toks)}</b> vision tokens (${Object.keys(bt).length} configurations).`);
+  const fragile = Object.keys(sum).filter(f => sum[f].cliff);
+  if (fragile.length) {
+    facts.push(`Cliff detected in <b>${fragile.length}</b> family(ies): <b>${fragile.map(f => FAMILY_NAMES[f] || f).join(", ")}</b>.`);
+  }
+  const robust = Object.keys(sum).filter(f => !sum[f].cliff && sum[f].range < 0.15);
+  if (robust.length) {
+    facts.push(`Budget-robust family(ies): <b>${robust.map(f => FAMILY_NAMES[f] || f).join(", ")}</b> stay within ±15 points across the full range.`);
+  }
+  const el = document.getElementById("facts");
+  el.innerHTML = facts.map(f => `<p style="margin:6px 0">${f}</p>`).join("");
+}
+
+document.getElementById("resetBtn").onclick = () => renderDecay(document.getElementById("familySelect").value);
+window.addEventListener("DOMContentLoaded", load);
+</script>
+</body>
+</html>
