@@ -92,3 +92,8 @@ scripts/         corpus build, sweep, figures, paper facts
 data/            probes/, sweep/
 docs/            figures + technical report
 ```
+---
+
+## Live report
+
+The technical report, figures and every number are served at **[https://wyc66-66.github.io/tokenbudget/](https://wyc66-66.github.io/tokenbudget/)**.
