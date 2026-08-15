@@ -129,6 +129,8 @@ def gen_colcnt(seed: int, difficulty: int) -> tuple[Image.Image, str]:
     rng = random.Random(seed)
     colors = list(COLOR_NAMES.values())
     red = colors[0]
+    non_red = colors[1:]  # the non-red branch must never draw red, or the
+    # rendered grid would disagree with the ground-truth count below.
     img = Image.new("RGB", (W, H), (255, 255, 255))
     d = ImageDraw.Draw(img)
     side = int(n**0.5) + 1
@@ -142,7 +144,7 @@ def gen_colcnt(seed: int, difficulty: int) -> tuple[Image.Image, str]:
             c = red
             count += 1
         else:
-            c = colors[rng.randrange(len(colors))]
+            c = non_red[rng.randrange(len(non_red))]
         d.rectangle([x0, y0, x0 + cell, y0 + cell], fill=c, outline=(230, 230, 230), width=1)
     return img, str(count)
 

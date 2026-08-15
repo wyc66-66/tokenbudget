@@ -110,33 +110,65 @@ class SweepResult:
                 merged[b][0] += a * nn
                 merged[b][1] += nn
         budgets = sorted(merged.keys(), key=lambda b: -first.budget_axis[first.budgets.index(b)])
+        acc = [merged[b][0] / merged[b][1] if merged[b][1] else 0.0 for b in budgets]
+        n = [merged[b][1] for b in budgets]
+        # count-weighted Wilson interval over the merged successes/failures
+        ci_lo, ci_hi = [], []
+        for b, nn in zip(budgets, n):
+            k = int(round(merged[b][0]))  # successes = acc * n, rounded
+            _, lo, hi = _wilson(k, nn)
+            ci_lo.append(lo)
+            ci_hi.append(hi)
         return DecayCurve(
             family=family,
             difficulty=-1,
             budget_axis=[first.budget_axis[first.budgets.index(b)] for b in budgets],
             budgets=budgets,
-            acc=[merged[b][0] / merged[b][1] if merged[b][1] else 0.0 for b in budgets],
-            ci_lo=[0.0] * len(budgets),
-            ci_hi=[0.0] * len(budgets),
-            n=[merged[b][1] for b in budgets],
+            acc=acc,
+            ci_lo=ci_lo,
+            ci_hi=ci_hi,
+            n=n,
         )
 
     def summary(self) -> dict:
+        """Per-family summary on two explicit views.
+
+        - ``agg_*``  : the count-weighted aggregate curve over difficulties
+          (this is the headline view; the aggregate is what a deployer sees
+          when a family is used as a single capability probe).
+        - ``span_*`` : the extreme-value span across difficulties (best single
+          difficulty at the richest budget vs worst single difficulty at the
+          tightest). Kept only for reference — it is *not* a budget effect.
+
+        Both views are labelled so that a reader can never mistake the
+        per-difficulty span for the aggregate budget trend.
+        """
         out = {}
         for fam, diffs in self.curves.items():
             agg = self.family_curve(fam)
             cl = agg.cliff() if agg else None
-            # difficulty-averaged best/worst
-            best = max((c.acc[0] for c in diffs.values()), default=0.0)
-            worst = min((c.acc[-1] for c in diffs.values()), default=0.0)
+            agg_richest = agg.acc[0] if agg else 0.0
+            agg_tightest = agg.acc[-1] if agg else 0.0
+            # largest single-step drop along the aggregate curve (budget
+            # getting tighter: acc[i] -> acc[i+1], so a positive value is a
+            # real degradation). Max, not min: min would report a *recovery*
+            # step (e.g. the V-bottom of ringgap) as if it were a drop.
+            agg_drops = [
+                a - b for a, b in zip(agg.acc[:-1], agg.acc[1:]) if agg and len(agg.acc) > 1
+            ]
             out[fam] = {
-                "best_acc": best,
-                "worst_acc": worst,
-                "range": best - worst,
+                "agg_richest": agg_richest,
+                "agg_tightest": agg_tightest,
+                "agg_range": agg_richest - agg_tightest,
+                "agg_max_step_drop": (max(agg_drops) if agg_drops else 0.0),
                 "cliff": cl,
                 "n_difficulties": len(diffs),
                 "sensitive_difficulties": sum(
                     1 for c in diffs.values() if c.cliff() is not None
                 ),
+                "span_richest": max((c.acc[0] for c in diffs.values()), default=0.0),
+                "span_tightest": min((c.acc[-1] for c in diffs.values()), default=0.0),
+                "span_range": max((c.acc[0] for c in diffs.values()), default=0.0)
+                - min((c.acc[-1] for c in diffs.values()), default=0.0),
             }
         return out

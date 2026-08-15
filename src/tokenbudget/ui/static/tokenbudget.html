@@ -72,6 +72,7 @@
 </header>
 
 <main>
+  <div id="status"></div>
   <div class="cards">
     <div class="card">
       <h3>Configurations</h3>
@@ -170,10 +171,12 @@ function renderCards() {
   document.getElementById("cfgCount").textContent = nCfg;
   document.getElementById("budgetRange").textContent = `${Math.min(...toks)} → ${Math.max(...toks)}`;
   const sum = decayData.summary;
-  let sens = 0, robust = 0;
+  let sens = 0, robust = 0, hard = 0;
   for (const fam of Object.keys(sum)) {
-    if (sum[fam].sensitive_difficulties >= 1 && sum[fam].cliff) sens++;
-    else if (sum[fam].range < 0.15) robust++;
+    const s = sum[fam];
+    if (s.cliff) sens++;
+    else if (s.agg_richest < 0.30) hard++;          // hard task: below 30% even at full budget
+    else if (s.agg_max_step_drop < 0.15) robust++;  // no step drops past the margin
   }
   document.getElementById("sensitiveCount").textContent = sens;
   document.getElementById("robustCount").textContent = robust;
@@ -246,7 +249,7 @@ function renderDecay(fam) {
     cliffBox.innerHTML = `<b>No cliff detected</b> — the family stays within ±15 points across the whole budget range.`;
   }
   document.getElementById("familyMeta").textContent =
-    `difficulties: ${diffs.length} · best-acc range ${(sum.range * 100).toFixed(0)} pts`;
+    `difficulties: ${diffs.length} · aggregate ${(sum.agg_richest * 100).toFixed(0)}% → ${(sum.agg_tightest * 100).toFixed(0)}%`;
 
   if (familyChart) familyChart.destroy();
   const datasets = diffs.map(d => {
@@ -302,24 +305,24 @@ function d3color(d, n) {
 function renderRanking() {
   const sum = decayData.summary;
   const rows = Object.keys(sum).map(fam => ({ fam, ...sum[fam] }))
-    .sort((a, b) => b.range - a.range);
+    .sort((a, b) => b.agg_range - a.agg_range);
   const tbody = document.getElementById("rankBody");
   tbody.innerHTML = "";
   for (const r of rows) {
     const tr = document.createElement("tr");
-    const verdict = r.range >= 0.15 && r.cliff
-      ? '<span class="tag fragile">fragile</span>'
-      : r.range >= 0.15
-        ? '<span class="tag mixed">mixed</span>'
-        : '<span class="tag robust">robust</span>';
+    let verdict;
+    if (r.cliff) verdict = '<span class="tag fragile">cliff</span>';
+    else if (r.agg_richest < 0.30) verdict = '<span class="tag mixed">hard</span>';
+    else if (r.agg_max_step_drop >= 0.15) verdict = '<span class="tag mixed">mixed</span>';
+    else verdict = '<span class="tag robust">robust</span>';
     const cliffTxt = r.cliff
       ? `${r.cliff.at} (${(r.cliff.drop * 100).toFixed(0)}pt drop)`
       : "—";
     tr.innerHTML = `
       <td><b>${FAMILY_NAMES[r.fam] || r.fam}</b> <span class="badge">${r.fam}</span></td>
-      <td>${(r.range * 100).toFixed(0)} pts</td>
-      <td>${(r.best_acc * 100).toFixed(0)}%</td>
-      <td>${(r.worst_acc * 100).toFixed(0)}%</td>
+      <td>${(r.agg_range * 100).toFixed(0)} pts</td>
+      <td>${(r.agg_richest * 100).toFixed(0)}%</td>
+      <td>${(r.agg_tightest * 100).toFixed(0)}%</td>
       <td>${cliffTxt}</td>
       <td>${verdict}</td>`;
     tbody.appendChild(tr);
@@ -336,7 +339,11 @@ function renderFacts() {
   if (fragile.length) {
     facts.push(`Cliff detected in <b>${fragile.length}</b> family(ies): <b>${fragile.map(f => FAMILY_NAMES[f] || f).join(", ")}</b>.`);
   }
-  const robust = Object.keys(sum).filter(f => !sum[f].cliff && sum[f].range < 0.15);
+  const hard = Object.keys(sum).filter(f => !sum[f].cliff && sum[f].agg_richest < 0.30);
+  if (hard.length) {
+    facts.push(`Hard but budget-invariant (below <b>30%</b> even at the richest configuration): <b>${hard.map(f => FAMILY_NAMES[f] || f).join(", ")}</b>. These are capacity limits, not budget effects.`);
+  }
+  const robust = Object.keys(sum).filter(f => !sum[f].cliff && sum[f].agg_richest >= 0.30 && sum[f].agg_max_step_drop < 0.15);
   if (robust.length) {
     facts.push(`Budget-robust family(ies): <b>${robust.map(f => FAMILY_NAMES[f] || f).join(", ")}</b> stay within ±15 points across the full range.`);
   }

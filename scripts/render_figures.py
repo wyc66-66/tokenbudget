@@ -107,10 +107,10 @@ def fig_budget_table(budget_table: dict, out: Path) -> None:
 def fig_sensitivity_ranking(result: SweepResult, out: Path) -> None:
     """Horizontal bars of best-minus-worst budget accuracy per family."""
     summary = result.summary()
-    fams = sorted(summary, key=lambda f: -summary[f]["range"])
+    fams = sorted(summary, key=lambda f: -summary[f]["agg_range"])
     fig, ax = plt.subplots(figsize=(9, 0.55 * len(fams)))
     y = range(len(fams))
-    ranges = [summary[f]["range"] for f in fams]
+    ranges = [summary[f]["agg_range"] for f in fams]
     bars = ax.barh(list(y), ranges, color=[FAMILY_COLORS.get(f, "#888") for f in fams])
     ax.set_yticks(list(y))
     ax.set_yticklabels([FAMILY_LABELS.get(f, f) for f in fams], fontsize=10)

@@ -104,7 +104,7 @@
   "seed": 1,
   "difficulty": 5,
   "image": "images/colcnt_s001_d5.png",
-  "answer": "4",
+  "answer": "5",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -113,7 +113,7 @@
   "seed": 2,
   "difficulty": 0,
   "image": "images/colcnt_s002_d0.png",
-  "answer": "2",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -122,7 +122,7 @@
   "seed": 2,
   "difficulty": 1,
   "image": "images/colcnt_s002_d1.png",
-  "answer": "2",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -140,7 +140,7 @@
   "seed": 2,
   "difficulty": 3,
   "image": "images/colcnt_s002_d3.png",
-  "answer": "4",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -149,7 +149,7 @@
   "seed": 2,
   "difficulty": 4,
   "image": "images/colcnt_s002_d4.png",
-  "answer": "4",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -158,7 +158,7 @@
   "seed": 2,
   "difficulty": 5,
   "image": "images/colcnt_s002_d5.png",
-  "answer": "5",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -284,7 +284,7 @@
   "seed": 5,
   "difficulty": 1,
   "image": "images/colcnt_s005_d1.png",
-  "answer": "2",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -293,7 +293,7 @@
   "seed": 5,
   "difficulty": 2,
   "image": "images/colcnt_s005_d2.png",
-  "answer": "3",
+  "answer": "5",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -320,7 +320,7 @@
   "seed": 5,
   "difficulty": 5,
   "image": "images/colcnt_s005_d5.png",
-  "answer": "5",
+  "answer": "6",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -356,7 +356,7 @@
   "seed": 6,
   "difficulty": 3,
   "image": "images/colcnt_s006_d3.png",
-  "answer": "3",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -374,7 +374,7 @@
   "seed": 6,
   "difficulty": 5,
   "image": "images/colcnt_s006_d5.png",
-  "answer": "4",
+  "answer": "5",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -401,7 +401,7 @@
   "seed": 7,
   "difficulty": 2,
   "image": "images/colcnt_s007_d2.png",
-  "answer": "3",
+  "answer": "2",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -410,7 +410,7 @@
   "seed": 7,
   "difficulty": 3,
   "image": "images/colcnt_s007_d3.png",
-  "answer": "4",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -419,7 +419,7 @@
   "seed": 7,
   "difficulty": 4,
   "image": "images/colcnt_s007_d4.png",
-  "answer": "5",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -437,7 +437,7 @@
   "seed": 8,
   "difficulty": 0,
   "image": "images/colcnt_s008_d0.png",
-  "answer": "3",
+  "answer": "2",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -446,7 +446,7 @@
   "seed": 8,
   "difficulty": 1,
   "image": "images/colcnt_s008_d1.png",
-  "answer": "4",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -473,7 +473,7 @@
   "seed": 8,
   "difficulty": 4,
   "image": "images/colcnt_s008_d4.png",
-  "answer": "6",
+  "answer": "7",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -482,7 +482,7 @@
   "seed": 8,
   "difficulty": 5,
   "image": "images/colcnt_s008_d5.png",
-  "answer": "6",
+  "answer": "7",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -491,7 +491,7 @@
   "seed": 9,
   "difficulty": 0,
   "image": "images/colcnt_s009_d0.png",
-  "answer": "0",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -500,7 +500,7 @@
   "seed": 9,
   "difficulty": 1,
   "image": "images/colcnt_s009_d1.png",
-  "answer": "1",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -509,7 +509,7 @@
   "seed": 9,
   "difficulty": 2,
   "image": "images/colcnt_s009_d2.png",
-  "answer": "2",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -518,7 +518,7 @@
   "seed": 9,
   "difficulty": 3,
   "image": "images/colcnt_s009_d3.png",
-  "answer": "2",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -527,7 +527,7 @@
   "seed": 9,
   "difficulty": 4,
   "image": "images/colcnt_s009_d4.png",
-  "answer": "2",
+  "answer": "5",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -536,7 +536,7 @@
   "seed": 9,
   "difficulty": 5,
   "image": "images/colcnt_s009_d5.png",
-  "answer": "4",
+  "answer": "7",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -545,7 +545,7 @@
   "seed": 10,
   "difficulty": 0,
   "image": "images/colcnt_s010_d0.png",
-  "answer": "1",
+  "answer": "2",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -554,7 +554,7 @@
   "seed": 10,
   "difficulty": 1,
   "image": "images/colcnt_s010_d1.png",
-  "answer": "1",
+  "answer": "2",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -563,7 +563,7 @@
   "seed": 10,
   "difficulty": 2,
   "image": "images/colcnt_s010_d2.png",
-  "answer": "1",
+  "answer": "2",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -572,7 +572,7 @@
   "seed": 10,
   "difficulty": 3,
   "image": "images/colcnt_s010_d3.png",
-  "answer": "3",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -581,7 +581,7 @@
   "seed": 10,
   "difficulty": 4,
   "image": "images/colcnt_s010_d4.png",
-  "answer": "3",
+  "answer": "5",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -590,7 +590,7 @@
   "seed": 10,
   "difficulty": 5,
   "image": "images/colcnt_s010_d5.png",
-  "answer": "5",
+  "answer": "6",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -653,7 +653,7 @@
   "seed": 12,
   "difficulty": 0,
   "image": "images/colcnt_s012_d0.png",
-  "answer": "2",
+  "answer": "0",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -662,7 +662,7 @@
   "seed": 12,
   "difficulty": 1,
   "image": "images/colcnt_s012_d1.png",
-  "answer": "3",
+  "answer": "2",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -680,7 +680,7 @@
   "seed": 12,
   "difficulty": 3,
   "image": "images/colcnt_s012_d3.png",
-  "answer": "6",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -689,7 +689,7 @@
   "seed": 12,
   "difficulty": 4,
   "image": "images/colcnt_s012_d4.png",
-  "answer": "6",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -698,7 +698,7 @@
   "seed": 12,
   "difficulty": 5,
   "image": "images/colcnt_s012_d5.png",
-  "answer": "7",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -716,7 +716,7 @@
   "seed": 13,
   "difficulty": 1,
   "image": "images/colcnt_s013_d1.png",
-  "answer": "2",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -725,7 +725,7 @@
   "seed": 13,
   "difficulty": 2,
   "image": "images/colcnt_s013_d2.png",
-  "answer": "2",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -734,7 +734,7 @@
   "seed": 13,
   "difficulty": 3,
   "image": "images/colcnt_s013_d3.png",
-  "answer": "2",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -743,7 +743,7 @@
   "seed": 13,
   "difficulty": 4,
   "image": "images/colcnt_s013_d4.png",
-  "answer": "3",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -752,7 +752,7 @@
   "seed": 13,
   "difficulty": 5,
   "image": "images/colcnt_s013_d5.png",
-  "answer": "3",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -770,7 +770,7 @@
   "seed": 14,
   "difficulty": 1,
   "image": "images/colcnt_s014_d1.png",
-  "answer": "1",
+  "answer": "2",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -779,7 +779,7 @@
   "seed": 14,
   "difficulty": 2,
   "image": "images/colcnt_s014_d2.png",
-  "answer": "3",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -806,7 +806,7 @@
   "seed": 14,
   "difficulty": 5,
   "image": "images/colcnt_s014_d5.png",
-  "answer": "4",
+  "answer": "5",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -869,7 +869,7 @@
   "seed": 16,
   "difficulty": 0,
   "image": "images/colcnt_s016_d0.png",
-  "answer": "0",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -878,7 +878,7 @@
   "seed": 16,
   "difficulty": 1,
   "image": "images/colcnt_s016_d1.png",
-  "answer": "0",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -887,7 +887,7 @@
   "seed": 16,
   "difficulty": 2,
   "image": "images/colcnt_s016_d2.png",
-  "answer": "0",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -896,7 +896,7 @@
   "seed": 16,
   "difficulty": 3,
   "image": "images/colcnt_s016_d3.png",
-  "answer": "0",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -905,7 +905,7 @@
   "seed": 16,
   "difficulty": 4,
   "image": "images/colcnt_s016_d4.png",
-  "answer": "0",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -914,7 +914,7 @@
   "seed": 16,
   "difficulty": 5,
   "image": "images/colcnt_s016_d5.png",
-  "answer": "1",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -950,7 +950,7 @@
   "seed": 17,
   "difficulty": 3,
   "image": "images/colcnt_s017_d3.png",
-  "answer": "4",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -959,7 +959,7 @@
   "seed": 17,
   "difficulty": 4,
   "image": "images/colcnt_s017_d4.png",
-  "answer": "5",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -968,7 +968,7 @@
   "seed": 17,
   "difficulty": 5,
   "image": "images/colcnt_s017_d5.png",
-  "answer": "7",
+  "answer": "6",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -977,7 +977,7 @@
   "seed": 18,
   "difficulty": 0,
   "image": "images/colcnt_s018_d0.png",
-  "answer": "1",
+  "answer": "0",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -986,7 +986,7 @@
   "seed": 18,
   "difficulty": 1,
   "image": "images/colcnt_s018_d1.png",
-  "answer": "2",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -995,7 +995,7 @@
   "seed": 18,
   "difficulty": 2,
   "image": "images/colcnt_s018_d2.png",
-  "answer": "2",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -1004,7 +1004,7 @@
   "seed": 18,
   "difficulty": 3,
   "image": "images/colcnt_s018_d3.png",
-  "answer": "2",
+  "answer": "1",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -1022,7 +1022,7 @@
   "seed": 18,
   "difficulty": 5,
   "image": "images/colcnt_s018_d5.png",
-  "answer": "4",
+  "answer": "5",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -1049,7 +1049,7 @@
   "seed": 19,
   "difficulty": 2,
   "image": "images/colcnt_s019_d2.png",
-  "answer": "5",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -1058,7 +1058,7 @@
   "seed": 19,
   "difficulty": 3,
   "image": "images/colcnt_s019_d3.png",
-  "answer": "5",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -1067,7 +1067,7 @@
   "seed": 19,
   "difficulty": 4,
   "image": "images/colcnt_s019_d4.png",
-  "answer": "5",
+  "answer": "3",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {
@@ -1076,7 +1076,7 @@
   "seed": 19,
   "difficulty": 5,
   "image": "images/colcnt_s019_d5.png",
-  "answer": "6",
+  "answer": "4",
   "question": "A grid of small colored squares is shown. How many of them are red? Answer with a number only."
  },
  {

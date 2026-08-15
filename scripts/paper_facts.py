@@ -24,20 +24,30 @@ def main() -> None:
     for label, b in data["budget_table"].items():
         print(f"  {label}: {b['vision_tokens']} vision tokens")
 
-    print("\n== per-family summary ==")
+    print("\n== per-family summary (count-weighted aggregate across difficulties) ==")
     for fam, s in result.summary().items():
-        print(f"  {fam}: best={s['best_acc']:.3f} worst={s['worst_acc']:.3f} range={s['range']:.3f}")
+        print(
+            f"  {fam}: agg {s['agg_richest']:.3f} (richest) -> {s['agg_tightest']:.3f} "
+            f"(tightest), range={s['agg_range']:.3f}, max_step_drop={s['agg_max_step_drop']:.3f}"
+        )
         if s["cliff"]:
             c = s["cliff"]
             print(f"    cliff at {c['at']} (acc {c['acc_before']:.3f} -> {c['acc_after']:.3f}, drop {c['drop']:.3f})")
 
     # cross-family: how much does the tightest budget hurt vs loosest?
-    print("\n== budget-sensitivity ranking (best-worst range) ==")
+    print("\n== budget-sensitivity ranking (aggregate range) ==")
     rows = []
     for fam, s in result.summary().items():
-        rows.append((s["range"], fam))
+        rows.append((s["agg_range"], fam))
     for rng, fam in sorted(rows, reverse=True):
         print(f"  {fam}: {rng:.3f}")
+
+    print("\n== per-family per-difficulty extreme span (NOT a budget effect; reference only) ==")
+    for fam, s in result.summary().items():
+        print(
+            f"  {fam}: span_richest={s['span_richest']:.3f} span_tightest={s['span_tightest']:.3f} "
+            f"span_range={s['span_range']:.3f}"
+        )
 
 
 if __name__ == "__main__":
