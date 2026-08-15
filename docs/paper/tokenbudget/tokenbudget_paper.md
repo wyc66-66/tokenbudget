@@ -18,6 +18,8 @@ Edge multimodal LLMs must fit inside a compute envelope. The dominant lever is t
 
 "Fewer tokens" and "less perceptive" are not the same thing. Some capabilities degrade gracefully; others fail catastrophically once the budget passes a threshold. This project maps that landscape with a controlled, procedurally-generated perception battery — tasks with known ground truth and a calibrated difficulty axis — and reports where perception *quietly breaks*, and where it does not.
 
+The question sits squarely inside the design space Yao et al. opened with MiniCPM-V [1]: the original paper established that a GPT-4V-level MLLM can run on a phone by aggressive token efficiency, and the 4.6 release makes the compression *explicit* as a deployable knob (4x/16x native downsample modes [2]). What neither the paper nor the model card answers is the *decomposed* question — compression reports one aggregate number, but perception is not one capability. An on-device developer choosing between 4x and 16x needs to know which *specific* skills (reading, counting, locating, color matching) pay for the token savings and which silently break. That is the gap this report fills: per-capability, per-difficulty degradation curves across the full budget axis of the very model this lab ships.
+
 ## 2. Method
 
 ### 2.1 Probe corpus
@@ -219,17 +221,18 @@ closest line of work compresses tokens with learned projectors or prunes them
 during inference: TokenPacker reduces 75–89% of visual tokens at the projector
 with a coarse-to-fine scheme [4]; FastV prunes low-attention visual tokens in
 deep layers of an LVLM at inference time [5]; EViT reorganizes inattentive
-patches in a ViT backbone [6]. A second line studies how input resolution and
-tiling change perception on high-resolution benchmarks — e.g. LLaVA-UHD's
-dynamic slicing [7], Qwen2-VL's "native resolution" [8], and MiniCPM-V's own
-4x/16x downsample modes [1,2]. What these studies measure is *aggregate*
-benchmark accuracy after compression. This report complements them with a
-controlled probe battery that keeps the image content fixed and sweeps only the
-budget knobs, so the per-capability fate of individual skills (reading,
-counting, localizing, hue matching) is visible rather than averaged away. It
-also adds the aggregate-vs-per-difficulty distinction, which we found is the
-difference between a spurious "clean split" and a truthful
-"one real cliff" conclusion.
+patches in a ViT backbone [6]; AIM merges similar tokens before the LLM and
+progressively prunes within layers, cutting FLOPs ~7× with minimal accuracy
+loss [9]. A second line studies how input resolution and tiling change
+perception on high-resolution benchmarks — e.g. LLaVA-UHD's dynamic slicing
+[7], Qwen2-VL's "native resolution" [8], and MiniCPM-V's own 4x/16x downsample
+modes [1,2]. What these studies measure is *aggregate* benchmark accuracy after
+compression. This report complements them with a controlled probe battery that
+keeps the image content fixed and sweeps only the budget knobs, so the
+per-capability fate of individual skills (reading, counting, localizing, hue
+matching) is visible rather than averaged away. It also adds the
+aggregate-vs-per-difficulty distinction, which we found is the difference
+between a spurious "clean split" and a truthful "one real cliff" conclusion.
 
 ### 4.5 Limitations
 
@@ -277,5 +280,6 @@ from it directly.
 6. Liang Y., Ge C., Tong Z., et al. Not All Patches are What You Need: Expediting Vision Transformers via Token Reorganizations. *ICLR 2022*.
 7. Xu R., Ye Y., Yan Y., et al. LLaVA-UHD: An LMM Perceiving Any Aspect Ratio and High-Resolution Images. *ECCV 2024*.
 8. Wang P., Bai S., et al. Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution. *arXiv:2409.12191*, 2024.
-9. Xu Z., et al. Efficient Multimodal Large Language Models: A Survey. *arXiv:2405.10739*, 2024.
-10. Zhai X., Mustafa B., Kolesnikov A., et al. Sigmoid Loss for Language Image Pre-Training (SigLIP). *arXiv:2303.15343*, ICCV 2023.
+9. Zhong Y., Liu Z., Li Y., Wang L. AIM: Adaptive Inference of Multi-Modal LLMs via Token Merging and Pruning. *ICCV 2025*.
+10. Xu Z., et al. Efficient Multimodal Large Language Models: A Survey. *arXiv:2405.10739*, 2024.
+11. Zhai X., Mustafa B., Kolesnikov A., et al. Sigmoid Loss for Language Image Pre-Training (SigLIP). *arXiv:2303.15343*, ICCV 2023.

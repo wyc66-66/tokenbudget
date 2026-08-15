@@ -38,6 +38,7 @@ hr{border:0;border-top:1px solid var(--line);margin:28px 0}
 <p><strong>Which specific perception capabilities survive aggressive token compression, and which collapse first?</strong></p>
 </blockquote>
 <p>"Fewer tokens" and "less perceptive" are not the same thing. Some capabilities degrade gracefully; others fail catastrophically once the budget passes a threshold. This project maps that landscape with a controlled, procedurally-generated perception battery — tasks with known ground truth and a calibrated difficulty axis — and reports where perception <em>quietly breaks</em>, and where it does not.</p>
+<p>The question sits squarely inside the design space Yao et al. opened with MiniCPM-V [1]: the original paper established that a GPT-4V-level MLLM can run on a phone by aggressive token efficiency, and the 4.6 release makes the compression <em>explicit</em> as a deployable knob (4x/16x native downsample modes [2]). What neither the paper nor the model card answers is the <em>decomposed</em> question — compression reports one aggregate number, but perception is not one capability. An on-device developer choosing between 4x and 16x needs to know which <em>specific</em> skills (reading, counting, locating, color matching) pay for the token savings and which silently break. That is the gap this report fills: per-capability, per-difficulty degradation curves across the full budget axis of the very model this lab ships.</p>
 <h2>2. Method</h2>
 <h3>2.1 Probe corpus</h3>
 <p>Images are rendered deterministically with PIL primitives only. Each family varies a single <em>spatial-frequency / information-density</em> axis as difficulty rises. Every probe carries an exact ground-truth answer, and the question offers a closed set of answer options so scoring is unambiguous.</p>
@@ -383,17 +384,18 @@ closest line of work compresses tokens with learned projectors or prunes them
 during inference: TokenPacker reduces 75–89% of visual tokens at the projector
 with a coarse-to-fine scheme [4]; FastV prunes low-attention visual tokens in
 deep layers of an LVLM at inference time [5]; EViT reorganizes inattentive
-patches in a ViT backbone [6]. A second line studies how input resolution and
-tiling change perception on high-resolution benchmarks — e.g. LLaVA-UHD's
-dynamic slicing [7], Qwen2-VL's "native resolution" [8], and MiniCPM-V's own
-4x/16x downsample modes [1,2]. What these studies measure is <em>aggregate</em>
-benchmark accuracy after compression. This report complements them with a
-controlled probe battery that keeps the image content fixed and sweeps only the
-budget knobs, so the per-capability fate of individual skills (reading,
-counting, localizing, hue matching) is visible rather than averaged away. It
-also adds the aggregate-vs-per-difficulty distinction, which we found is the
-difference between a spurious "clean split" and a truthful
-"one real cliff" conclusion.</p>
+patches in a ViT backbone [6]; AIM merges similar tokens before the LLM and
+progressively prunes within layers, cutting FLOPs ~7× with minimal accuracy
+loss [9]. A second line studies how input resolution and tiling change
+perception on high-resolution benchmarks — e.g. LLaVA-UHD's dynamic slicing
+[7], Qwen2-VL's "native resolution" [8], and MiniCPM-V's own 4x/16x downsample
+modes [1,2]. What these studies measure is <em>aggregate</em> benchmark accuracy after
+compression. This report complements them with a controlled probe battery that
+keeps the image content fixed and sweeps only the budget knobs, so the
+per-capability fate of individual skills (reading, counting, localizing, hue
+matching) is visible rather than averaged away. It also adds the
+aggregate-vs-per-difficulty distinction, which we found is the difference
+between a spurious "clean split" and a truthful "one real cliff" conclusion.</p>
 <h3>4.5 Limitations</h3>
 <ul>
 <li><strong>Single model, single image scale.</strong> All results are for MiniCPM-V 4.6 at
@@ -436,6 +438,7 @@ from it directly.</p>
 <li>Liang Y., Ge C., Tong Z., et al. Not All Patches are What You Need: Expediting Vision Transformers via Token Reorganizations. <em>ICLR 2022</em>.</li>
 <li>Xu R., Ye Y., Yan Y., et al. LLaVA-UHD: An LMM Perceiving Any Aspect Ratio and High-Resolution Images. <em>ECCV 2024</em>.</li>
 <li>Wang P., Bai S., et al. Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution. <em>arXiv:2409.12191</em>, 2024.</li>
+<li>Zhong Y., Liu Z., Li Y., Wang L. AIM: Adaptive Inference of Multi-Modal LLMs via Token Merging and Pruning. <em>ICCV 2025</em>.</li>
 <li>Xu Z., et al. Efficient Multimodal Large Language Models: A Survey. <em>arXiv:2405.10739</em>, 2024.</li>
 <li>Zhai X., Mustafa B., Kolesnikov A., et al. Sigmoid Loss for Language Image Pre-Training (SigLIP). <em>arXiv:2303.15343</em>, ICCV 2023.</li>
 </ol></body></html>
