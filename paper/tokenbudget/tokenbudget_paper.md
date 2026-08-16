@@ -303,6 +303,31 @@ conclusion.
   richest configuration; their flatness bounds what this battery can say about
   the budget sensitivity of hard perceptual counting, by design.
 
+### 4.6 Future work
+
+The natural next step is to turn this measurement into a decision procedure
+for the very deployment this model was built for. Three directions.
+
+First, **encode the per-capability map as a deployment selector.** The current
+report answers "which capabilities survive which budget". A selector inverts
+that: given an application's required capability set, pick the cheapest
+configuration whose mapped families all stay above their reliability bar. That
+is the artifact an on-device developer (or a model card) would actually ship,
+and it is a straightforward downstream of the curves here. Second, **re-measure
+the cliff cells with larger n and temperature sampling.** At n=20 the cliff
+location has a 38% chance of vanishing under bootstrap; a focused follow-up on
+the 347-token operating point — 200+ seeds, sampled decodes — would pin down
+whether the V-shaped `ringgap` failure is a real recovery or a small-sample
+artefact, and whether it is specific to this checkpoint or a property of the
+compression scheme. Third, **extend the axis toward streaming inputs.**
+Everything here is single-frame; the compression/degradation trade-off in
+streaming multimodal inference (where token budgets are re-decided per frame)
+is the same question with a time dimension, and the probe battery carries over
+almost unchanged.
+
+These are incremental in method but direct in value: each turns a measured
+curve into something a model team can act on.
+
 ## 5. Reproducibility
 
 ```

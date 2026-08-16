@@ -459,6 +459,27 @@ conclusion.</p>
   richest configuration; their flatness bounds what this battery can say about
   the budget sensitivity of hard perceptual counting, by design.</li>
 </ul>
+<h3>4.6 Future work</h3>
+<p>The natural next step is to turn this measurement into a decision procedure
+for the very deployment this model was built for. Three directions.</p>
+<p>First, <strong>encode the per-capability map as a deployment selector.</strong> The current
+report answers "which capabilities survive which budget". A selector inverts
+that: given an application's required capability set, pick the cheapest
+configuration whose mapped families all stay above their reliability bar. That
+is the artifact an on-device developer (or a model card) would actually ship,
+and it is a straightforward downstream of the curves here. Second, <strong>re-measure
+the cliff cells with larger n and temperature sampling.</strong> At n=20 the cliff
+location has a 38% chance of vanishing under bootstrap; a focused follow-up on
+the 347-token operating point — 200+ seeds, sampled decodes — would pin down
+whether the V-shaped <code>ringgap</code> failure is a real recovery or a small-sample
+artefact, and whether it is specific to this checkpoint or a property of the
+compression scheme. Third, <strong>extend the axis toward streaming inputs.</strong>
+Everything here is single-frame; the compression/degradation trade-off in
+streaming multimodal inference (where token budgets are re-decided per frame)
+is the same question with a time dimension, and the probe battery carries over
+almost unchanged.</p>
+<p>These are incremental in method but direct in value: each turns a measured
+curve into something a model team can act on.</p>
 <h2>5. Reproducibility</h2>
 <pre><code>pip install -e .[gpu,paper,ui]
 python scripts/build_probes.py --seeds 20 --out data/probes   # 960 probes
