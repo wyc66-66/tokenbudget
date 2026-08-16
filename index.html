@@ -39,19 +39,19 @@
 </header>
 <main>
   <div class="kpis">
-    <div class="kpi"><div class="lab">Headline</div><div class="val">cliff at 347 tokens (0.95 → 0.10)</div></div>
-    <div class="kpi"><div class="lab">Second</div><div class="val" style="font-size:16px">16x@448 = 82 tokens: near-free</div></div>
+    <div class="kpi"><div class="lab">Headline</div><div class="val">cliff at 347 tokens (n=200: 0.96 → 0.77)</div></div>
+    <div class="kpi"><div class="lab">Second</div><div class="val" style="font-size:16px">V-shape real · d5 recovery 0.33 → 0.46 significant</div></div>
   </div>
 
   <div class="card">
     <h2>What this project is</h2>
-    <p>Edge multimodal LLMs compress vision tokens 4x/16x to fit device budgets. Across 960 probes and a 31.7x token-budget axis (82–2,598 tokens), compression trades away <b>per-element binding before global structure</b>: digit reading and coarse detection survive at 82 tokens, while counting and fine-gap localization collapse below ~350 tokens. The cleanest cliff: ring-gap localization falls from 0.95 to 0.10 as the budget tightens. Every point is n=20 probes; the cliff survives 1,000-draw bootstrap resampling in 61.5% of draws with a location CI of [3,5] budget steps.</p>
+    <p>Edge multimodal LLMs compress vision tokens 4x/16x to fit device budgets. Across 960 probes and a 31.7x token-budget axis (82–2,598 tokens), compression trades away <b>per-element binding before global structure</b>: digit reading and coarse detection survive at 82 tokens, while counting and fine-gap localization collapse below ~350 tokens. The cleanest cliff: ring-gap localization. The headline cell was <b>re-measured at n=200</b> (200 seeds vs the n=20 scan): the aggregate cliff drops 0.963 → 0.770 (z = 13.9), the V-shaped failure at 82 tokens survives and is <b>significant on the hardest difficulty</b> (0.33 → 0.46, non-overlapping 95% CIs), and the n=20 magnitudes (0.95 → 0.10) are corrected to 0.78 → 0.33.</p>
     <a class="btn" href="paper/tokenbudget/tokenbudget_paper.html">Read the technical report →</a>
     <img src="paper/tokenbudget/figures/fig1_decay.png" alt="TokenBudget headline figure">
   </div>
   <div class="card small">
     <h2>Credibility at a glance</h2>
-    <p>960 probes · 6 budgets (82–2,598 tokens) · n=20/point · cliff bootstrap survival 61.5%</p>
+    <p>960 probes · 6 budgets (82–2,598 tokens) · n=20 scan + n=200 cliff re-measurement</p>
   </div>
 </main>
 <footer>TokenBudget · <a href="https://github.com/wyc66-66/tokenbudget">full source on GitHub</a> · figures, data and every number produced by the repo scripts</footer>

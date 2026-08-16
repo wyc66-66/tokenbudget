@@ -84,7 +84,7 @@ Per-family aggregate accuracy at the richest and tightest budget points:
 
 | family | agg @ richest | agg @ tightest | largest single-step drop | verdict |
 |---|---|---|---|---|
-| `ringgap` | 0.99 | 0.80 | 0.16 (at `16x@672`) | **cliff** |
+| `ringgap` | 0.99 | 0.80 | 0.16 (at `16x@672`) | **cliff** §3.2 |
 | `count` | 0.46 | 0.51 | 0.05 | flat, capacity-limited |
 | `colcnt` | 0.29 | 0.40 | 0.20 | hard, budget-invariant |
 | `mlread` | 1.00 | 0.98 | 0.02 | robust |
@@ -92,6 +92,9 @@ Per-family aggregate accuracy at the richest and tightest budget points:
 | `spatial` | 1.00 | 0.99 | 0.01 | robust |
 | `color` | 0.97 | 0.98 | 0.02 | robust |
 | `detail` | 1.00 | 1.00 | 0.00 | fully robust |
+
+*The `ringgap` row is the initial n=20 scan; §3.2 re-measures that family at
+n=200 (aggregate 0.963 → 0.770 → 0.796) and the cliff only strengthens.*
 
 ![Figure 1](figures/fig1_decay.png)
 
@@ -128,55 +131,67 @@ The honest reading is more interesting than a clean split:
 ### 3.2 The cliff: ring-gap detection
 
 `ringgap` is the cleanest demonstration of a compression cliff, and it is
-non-monotone in a way worth stating plainly:
+non-monotone in a way worth stating plainly. The n=20 scan of the battery
+found a V-shaped failure; because that shape is the report's most
+action-relevant claim, the `ringgap` cell was re-measured at **n=200 per
+(budget, difficulty)** (200 seeds, greedy decode; `data/sweep_ringgap200/`).
+The re-measured table is the one reported below; the original n=20 table is
+shown at the end of this section for comparison.
 
 | difficulty | 4x@1280 (2598 tok) | 16x@672 (347 tok) | 16x@448 (82 tok) |
 |---|---|---|---|
 | d0 | 1.00 | 1.00 | 1.00 |
 | d1 | 1.00 | 1.00 | 1.00 |
 | d2 | 1.00 | 1.00 | 1.00 |
-| d3 | 1.00 | 0.65 | 0.90 |
-| d4 | 1.00 | 0.50 | 0.45 |
-| d5 | 0.95 | 0.10 | 0.45 |
+| d3 | 1.00 | 0.82 | 0.90 |
+| d4 | 1.00 | 0.47 | 0.42 |
+| d5 | 0.78 | 0.33 | 0.46 |
 
-Difficulties d0–d2 are *fully robust*: 1.00 at every budget. Difficulties d3–d5
-degrade sharply at the 347-token operating point — d5 falls from 0.95 at the
-richest configuration to 0.10. The aggregate family curve drops 0.867 → 0.708
-(15.8 points) across this step, the only aggregate cliff in the battery.
+Difficulties d0–d2 are *fully robust*: 1.00 at every budget at n=200.
+Difficulties d3–d5 degrade sharply at the 347-token operating point — d5
+falls from 0.78 at the richest configuration to 0.33. The aggregate family
+curve drops 0.963 → 0.770 (19.3 points, z = 13.9) across this step — the
+only aggregate cliff in the battery, and significant at n=200 with no
+resampling needed.
 
-The tightest budget (`16x@448`, 82 tokens) shows a *partial recovery*
-(aggregate 0.80 vs 0.71 at the 347-token point). This is not a "continue
-falling" curve. The most plausible reading is that at 82 tokens the model can
-no longer bind individual rings and falls back to a coarse heuristic that is
-wrong-but-better-than-random on the hardest items. We flag this explicitly
-because a naive cliff detector reports the 347-token dip as the breakpoint; the
-full curve shows a V-shaped failure mode rather than a monotone collapse.
+**The V-shape survives at n=200, concentrated at the hardest difficulty.** The
+tightest budget (`16x@448`, 82 tokens) is *not* below the 347-token point:
+aggregate recovers from 0.770 to 0.796, and on d5 the recovery is
+statistically clean — 0.33 (95% CI [0.26, 0.39]) to 0.46 (95% CI
+[0.39, 0.52]), non-overlapping intervals on 200 trials each. The direction
+repeats on d3 (0.82 → 0.90) and is absent on d4 (0.47 → 0.42). So the
+V-shaped failure mode is real, not a small-sample fluke, but its size is
+much smaller than the n=20 scan suggested: the aggregate "recovery" is 2.6
+points (z = −1.53, n.s.), and the significant recovery lives on the hardest
+items where a coarse coarse-coordinate heuristic can beat random. The correct
+reading is: the 347-token dip is a genuine cliff, and the 82-token cell is
+weakly *better*, not worse — a failure shape a monotone-degradation model
+card would not predict.
 
-**Cliff stability.** The cliff location is not just a point estimate on n=20
-per budget point: bootstrapping each budget point's binary outcomes (1000
-resamples, fixed seed) and re-running the same detector finds the cliff
-surviving in 61.5% of draws, with a location CI of [3, 5] on the budget index —
-median at `16x@672` (the 347-token point). The remaining ~38% of draws place
-no cliff at all: at n=20 the *direction* is clear but the exact breakpoint has
-real sampling variance, and we report that honestly rather than drawing a
-single sharp line. For comparison, the null families report near-zero survival
-(`count` 0.4%, `mlread` 0.0%) — the detector is not trigger-happy, and
-`ringgap`'s cliff is the one measurement in the battery that survives
-resampling.
+**The n=20 scan overstated the drop.** The original n=20 table (first sweep,
+one decode, 20 seeds) read d5 as 0.95 / 0.10 / 0.45; at n=200 it is 0.78 /
+0.33 / 0.46. Both ends of the n=20 V were sampling outliers — the rich budget
+was over-estimated (0.95 → 0.78) and the cliff bottom over-estimated
+(0.10 → 0.33). The *qualitative* story (347-token low point; 82-token partial
+recovery) was correct; the *magnitudes* were not. For auditability both
+tables are shown:
 
-**Multiple-comparison sensitivity.** The detector runs over eight families
-and eight aggregate curves; with no correction, the headline cliff is 15.8
-points against a 15-point threshold — a 0.8-point margin. We therefore do not
-lean on the *magnitude* of the aggregate drop; we lean on three independent
-observations that survive together: (i) `ringgap` is the *only* family whose
-bootstrap survival is material (61.5% vs ≤0.4% for the null families), (ii) the
-drop replicates across difficulties d3–d5 (each falling 0.35/0.50/0.85 at the
-same 347-token operating point), and (iii) the d3–d5 rows are *monotone* in
-difficulty, which a threshold artifact would not produce. A stricter 20-point
-threshold discards the *aggregate* drop (0.158) but keeps every per-difficulty
-row (d3 0.35, d4 0.50, d5 0.85 all exceed it); the qualitative claim — fine-gap
-localization is the budget-fragile capability — does not depend on the exact
-threshold.
+| difficulty | 4x@1280 (n=20) | 16x@672 (n=20) | 16x@448 (n=20) | 4x@1280 (n=200) | 16x@672 (n=200) | 16x@448 (n=200) |
+|---|---|---|---|---|---|---|
+| d3 | 1.00 | 0.65 | 0.90 | 1.00 | 0.82 | 0.90 |
+| d4 | 1.00 | 0.50 | 0.45 | 1.00 | 0.47 | 0.42 |
+| d5 | 0.95 | 0.10 | 0.45 | 0.78 | 0.33 | 0.46 |
+
+The n=20 bottom row is the largest single correction the re-measurement
+produced; everything qualitative in this section survives it.
+
+**Cliff stability.** Because the aggregate drop is 19.3 points against the
+15-point threshold at n=1200 trials per point, the cliff location is no
+longer a sampling question: bootstrapping the n=200 outcomes (1000 resamples)
+finds the cliff surviving in 100% of draws, pinned at `16x@672` (the
+347-token point). The null families remain flat (<0.5% bootstrap survival), so
+the detector is not trigger-happy, and `ringgap` is the one family whose
+measurement survives both resampling and re-measurement.
 
 ### 3.3 Per-element counting is capacity-limited, not budget-limited
 
@@ -288,10 +303,13 @@ conclusion.
 - **Single model, single image scale.** All results are for MiniCPM-V 4.6 at
   512×512 rendered probes. The V-shaped `ringgap` curve in particular may be
   model-specific; we report it as an observation, not a law.
-- **n = 20 per (family, difficulty, config) cell, single decode.** Wilson
-  intervals are wide at n=20 (e.g. ±0.21 at 0.50), and the single greedy decode
-  discards sampling variance. Cells near a cliff should be re-measured with
-  temperature sampling before deployment decisions.
+- **n = 20 for the seven non-cliff families; n = 200 for `ringgap`.** The
+  wide battery was scanned at n=20 (Wilson ±0.21 at 0.50); the one family
+  whose shape mattered for a deployment decision (`ringgap`) was re-measured
+  at n=200 (§3.2). The remaining families were not re-measured because their
+  curves are flat or capacity-limited and a larger n would not change the
+  verdict. Cells near a cliff in any future battery should still be
+  re-measured before deployment decisions.
 - **Aggregate curves over six difficulty levels can hide per-difficulty
   behavior.** We report both views explicitly, but a family with heterogeneous
   difficulties could still mislead if only the aggregate is read.
@@ -313,17 +331,19 @@ report answers "which capabilities survive which budget". A selector inverts
 that: given an application's required capability set, pick the cheapest
 configuration whose mapped families all stay above their reliability bar. That
 is the artifact an on-device developer (or a model card) would actually ship,
-and it is a straightforward downstream of the curves here. Second, **re-measure
-the cliff cells with larger n and temperature sampling.** At n=20 the cliff
-location has a 38% chance of vanishing under bootstrap; a focused follow-up on
-the 347-token operating point — 200+ seeds, sampled decodes — would pin down
-whether the V-shaped `ringgap` failure is a real recovery or a small-sample
-artefact, and whether it is specific to this checkpoint or a property of the
-compression scheme. Third, **extend the axis toward streaming inputs.**
-Everything here is single-frame; the compression/degradation trade-off in
-streaming multimodal inference (where token budgets are re-decided per frame)
-is the same question with a time dimension, and the probe battery carries over
-almost unchanged.
+and it is a straightforward downstream of the curves here. Second, **replicate
+the cliff cell on a second checkpoint and on sampled decodes.** The n=200
+re-measurement (§3.2) pinned the `ringgap` V-shape for this checkpoint at a
+single greedy decode per probe; temperature sampling would confirm that the
+recovery at 82 tokens is a property of the compressed representation rather
+than of the specific decode, and a second model (e.g. a smaller/larger
+MiniCPM-V variant) would separate "this checkpoint" from "the compression
+scheme" — the same audit-transfer logic as the two-model cross-check in our
+companion spatial-reasoning study. Third, **extend the axis toward streaming
+inputs.** Everything here is single-frame; the compression/degradation
+trade-off in streaming multimodal inference (where token budgets are
+re-decided per frame) is the same question with a time dimension, and the
+probe battery carries over almost unchanged.
 
 These are incremental in method but direct in value: each turns a measured
 curve into something a model team can act on.
@@ -335,14 +355,21 @@ pip install -e .[gpu,paper,ui]
 python scripts/build_probes.py --seeds 20 --out data/probes   # 960 probes
 python scripts/run_sweep.py --probes data/probes --out data/sweep   # GPU, ~4h
 python scripts/paper_facts.py --sweep data/sweep/sweep.json   # derived claims
+
+# n=200 re-measurement of the ringgap cliff (§3.2)
+python scripts/build_probes.py --seeds 200 --families ringgap --out data/probes_ringgap200
+python scripts/run_ringgap_focus.py --sampled 0 --out data/sweep_ringgap200   # GPU, ~45min
+python scripts/ringgap_facts.py   # re-derives the §3.2 table and V-shape tests
+
 python scripts/render_figures.py --sweep data/sweep/sweep.json   # writes docs/paper/tokenbudget/figures/fig{1,2,3}_*.png
 python scripts/render_tokenbudget_paper.py   # this report (HTML + PDF)
 python -m tokenbudget ui --port 8000         # interactive console
 ```
 
-`data/sweep/sweep.json` is the single source of truth: every number in this
-report traces to that table, and `scripts/paper_facts.py` re-derives the claims
-from it directly.
+`data/sweep/sweep.json` (n=20 battery) and `data/sweep_ringgap200/ringgap200.json`
+(n=200 cliff re-measurement) are the sources of truth: every number in this
+report traces to one of those tables, and `scripts/paper_facts.py` +
+`scripts/ringgap_facts.py` re-derive the claims from them directly.
 
 ## References
 
