@@ -5,21 +5,26 @@ where the string is the ground-truth answer. Difficulty is an integer level
 that raises the *spatial-frequency / information density* of the scene:
 smaller glyphs, more and smaller objects, finer rings, thinner strokes.
 
-Two families are designed to sit on opposite sides of the budget cliff:
+The families were calibrated against the budget hypothesis during the first
+sweep run; the shipped set spans both sides of the observed divide:
 
 - "coarse" tasks (ocr, spatial, color, mlread): the answer can be recovered
-  from a handful of vision tokens. We expect them to be budget-robust.
-- "fine" tasks (detail, colcnt): the answer requires per-element binding of
-  many small features. We expect them to collapse when the budget drops
-  below the element count.
+  from a handful of vision tokens; they are budget-robust.
+- "fine" tasks (ringgap, detail, colcnt, count): the answer needs per-element
+  binding. The sweep shows this is *not* uniform — ringgap is the one
+  aggregate cliff, while detail (coarse ring geometry) and the counting tasks
+  are budget-invariant. Do not edit these expectations back in: the paper
+  reports what the data actually shows.
 
 Design rule: the question offers a fixed closed set of answer options and the
 ground truth is always one of them, so a lenient-but-explicit normalizer in
 ``tokenbudget.check`` can score the model fairly.
 
-Rendering is intentionally minimal (PIL primitives only): the point is that
-the *content* is controlled exactly, and any misreading by the model is a
-perception failure, not an annotation artifact.
+Rendering is intentionally minimal (PIL primitives): the point is that the
+*content* is controlled exactly, and any misreading by the model is a
+perception failure, not an annotation artifact. Text families rely on a system
+TrueType font (see ``FONT_CANDIDATES``), so glyph rendering is deterministic
+per machine.
 """
 from __future__ import annotations
 

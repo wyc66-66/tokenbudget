@@ -33,6 +33,17 @@ def main() -> None:
         if s["cliff"]:
             c = s["cliff"]
             print(f"    cliff at {c['at']} (acc {c['acc_before']:.3f} -> {c['acc_after']:.3f}, drop {c['drop']:.3f})")
+        b = s.get("cliff_bootstrap")
+        if b:
+            surv = b["survival_rate"]
+            if b["cliff_index_ci"]:
+                print(
+                    f"    bootstrap: survival={surv:.3f}, location CI "
+                    f"(budget index) {b['cliff_index_ci'][0]}..{b['cliff_index_ci'][1]} "
+                    f"median={b.get('cliff_median')}"
+                )
+            else:
+                print(f"    bootstrap: survival={surv:.3f} (no cliff in any draw)")
 
     # cross-family: how much does the tightest budget hurt vs loosest?
     print("\n== budget-sensitivity ranking (aggregate range) ==")

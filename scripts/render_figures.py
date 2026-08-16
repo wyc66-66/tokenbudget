@@ -65,9 +65,8 @@ def fig_decay(result: SweepResult, out: Path) -> None:
             ax.fill_between(c.budget_axis, c.ci_lo, c.ci_hi,
                             color=_diff_color(int(d), len(diffs)), alpha=0.10)
         ax.set_xscale("log")
-        ax.invert_xaxis()
         ax.set_title(FAMILY_LABELS.get(fam, fam), fontsize=12)
-        ax.set_xlabel("vision tokens (log, ← lower budget)")
+        ax.set_xlabel("vision tokens (log)")
         ax.set_ylabel("accuracy")
         ax.set_ylim(-0.05, 1.05)
         ax.grid(alpha=0.3)
@@ -128,16 +127,18 @@ def fig_sensitivity_ranking(result: SweepResult, out: Path) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sweep", default="data/sweep/sweep.json", type=Path)
-    ap.add_argument("--figs", default="docs/figures", type=Path)
+    ap.add_argument("--figs", default="docs/paper/tokenbudget/figures", type=Path)
     args = ap.parse_args()
 
     data = json.loads(args.sweep.read_text(encoding="utf-8"))
     result = SweepResult.load(args.sweep)
     args.figs.mkdir(parents=True, exist_ok=True)
 
-    fig_decay(result, args.figs / "fig_decay.png")
-    fig_budget_table(data["budget_table"], args.figs / "fig_budget.png")
-    fig_sensitivity_ranking(result, args.figs / "fig_sensitivity.png")
+    # Names match what scripts/render_tokenbudget_paper.py embeds, so a fresh
+    # run regenerates the committed report exactly.
+    fig_decay(result, args.figs / "fig1_decay.png")
+    fig_budget_table(data["budget_table"], args.figs / "fig2_budget.png")
+    fig_sensitivity_ranking(result, args.figs / "fig3_sensitivity.png")
 
     print(json.dumps(result.summary(), indent=1))
 

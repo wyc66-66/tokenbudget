@@ -18,11 +18,14 @@ from ~82 to ~2600 vision tokens. We ask:
 > **Which perception capabilities survive aggressive token compression,
 > and which collapse first?**
 
-The working hypothesis, confirmed by the data: **coarse capabilities** (reading
-a large number, judging spatial layout, discriminating color) are budget-robust;
-**per-element binding** (counting many small objects, locating one cell in a
-dense grid, detecting a sub-pixel gap) is budget-fragile, degrading sharply
-below a configuration-specific threshold.
+The working hypothesis was that *coarse capabilities* (reading a large
+number, judging spatial layout, discriminating color) are budget-robust, while
+*per-element binding* is budget-fragile. The data confirms the coarse side and
+sharply qualifies the fine side: **exactly one of the eight probe families
+(`ringgap`, 1-px gap on a shrinking ring) exhibits an aggregate cliff**, and it
+is V-shaped rather than monotone; counting and dense-grid color counting are
+hard but budget-invariant (capacity limits, not compression limits); digit
+reading and coarse gap detection survive all the way down to 82 vision tokens.
 
 ## Method
 
@@ -64,7 +67,7 @@ python scripts/run_sweep.py --probes data/probes --out data/sweep
 
 # 3. inspect the numbers and render paper figures
 python scripts/paper_facts.py --sweep data/sweep/sweep.json
-python scripts/render_figures.py --sweep data/sweep/sweep.json --figs docs/figures
+python scripts/render_figures.py --sweep data/sweep/sweep.json   # writes docs/paper/tokenbudget/figures/fig{1,2,3}_*.png
 
 # 4. local web console
 python -m tokenbudget ui --port 8000   # open http://127.0.0.1:8000
@@ -90,7 +93,7 @@ src/tokenbudget/
   ui/            FastAPI console + static dashboard
 scripts/         corpus build, sweep, figures, paper facts
 data/            probes/, sweep/
-docs/            figures + technical report
+docs/            technical report (paper markdown + rendered figures)
 ```
 ---
 

@@ -75,6 +75,61 @@ class DecayCurve:
             prev = a
         return None
 
+    def cliff_bootstrap(
+        self,
+        margin: float = 0.15,
+        min_drop: float = 0.20,
+        n_boot: int = 1000,
+        seed: int = 0,
+    ) -> dict | None:
+        """Bootstrap CI around the cliff location on this curve.
+
+        The raw cliff is a point estimate on n=20 trials per budget point.
+        This resamples each budget point's binary outcomes (binomial draws of
+        ``correct/total``), re-runs the same cliff detector on every draw, and
+        reports the *stability* of the cliff: the fraction of draws in which a
+        cliff survives at all, and the 2.5/97.5 percentile of its location
+        index when it does. A cliff that exists only in the point estimate but
+        vanishes in most draws is honestly reported as unstable — the interval
+        is the measurement, not a decoration.
+        """
+        if len(self.acc) < 2:
+            return None
+        rng = np.random.default_rng(seed)
+        correct = np.round(np.asarray(self.acc) * np.asarray(self.n)).astype(int)
+        totals = np.asarray(self.n)
+        indices: list[int] = []
+        for _ in range(n_boot):
+            boot = np.array(
+                [rng.binomial(t, c / t) / t if t > 0 else 0.0 for c, t in zip(correct, totals)]
+            )
+            prev = boot[0]
+            base = boot[0]
+            for i, a in enumerate(boot[1:], start=1):
+                if prev - a >= margin and base - a >= min_drop:
+                    indices.append(i)
+                    break
+                prev = a
+        if not indices:
+            return {
+                "n_boot": n_boot,
+                "survival_rate": 0.0,
+                "cliff_index_ci": None,
+                "note": "cliff absent in all bootstrap draws",
+            }
+        arr = np.asarray(indices)
+        return {
+            "n_boot": n_boot,
+            "survival_rate": round(float(len(indices)) / n_boot, 3),
+            "cliff_index_ci": [
+                int(np.percentile(arr, 2.5)),
+                int(np.percentile(arr, 97.5)),
+            ],
+            "cliff_at": [self.budgets[int(np.percentile(arr, 2.5))],
+                         self.budgets[int(np.percentile(arr, 97.5))]],
+            "cliff_median": self.budgets[int(np.median(arr))],
+        }
+
 
 @dataclass
 class SweepResult:
@@ -147,6 +202,7 @@ class SweepResult:
         for fam, diffs in self.curves.items():
             agg = self.family_curve(fam)
             cl = agg.cliff() if agg else None
+            cl_ci = agg.cliff_bootstrap() if agg else None
             agg_richest = agg.acc[0] if agg else 0.0
             agg_tightest = agg.acc[-1] if agg else 0.0
             # largest single-step drop along the aggregate curve (budget
@@ -162,6 +218,7 @@ class SweepResult:
                 "agg_range": agg_richest - agg_tightest,
                 "agg_max_step_drop": (max(agg_drops) if agg_drops else 0.0),
                 "cliff": cl,
+                "cliff_bootstrap": cl_ci,
                 "n_difficulties": len(diffs),
                 "sensitive_difficulties": sum(
                     1 for c in diffs.values() if c.cliff() is not None
