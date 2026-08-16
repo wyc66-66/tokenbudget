@@ -98,13 +98,13 @@ n=200 (aggregate 0.963 → 0.770 → 0.796) and the cliff only strengthens.*
 
 ![Figure 1](figures/fig1_decay.png)
 
-*Figure 1 — Per-family accuracy vs vision-token budget (log axis; left = tightest budget, right = richest). One line per difficulty level; the red dashed line marks a detected cliff.*
+*Figure 1 — Per-family accuracy vs vision-token budget (log axis; left = tightest budget, right = richest). One line per difficulty level; the red dashed line marks a detected cliff. Lines are the n=20 scan; the `ringgap` panel overlays the n=200 re-measurement (open squares, §3.2).*
 
 The honest reading is more interesting than a clean split:
 
 ![Figure 3](figures/fig3_sensitivity.png)
 
-*Figure 3 — Sensitivity ranking: best-budget minus worst-budget aggregate accuracy per family. Only `ringgap` clears the 0.15 cliff threshold.*
+*Figure 3 — Sensitivity ranking: best-budget minus worst-budget aggregate accuracy per family. Only `ringgap` clears the 0.15 cliff threshold; its bar uses the n=200 re-measurement range (§3.2).*
 
 - **Exactly one task family shows a real, aggregate-level cliff: `ringgap`.**
   Everything else either stays within noise of its rich-budget level (`ocr`,
