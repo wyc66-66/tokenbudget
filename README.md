@@ -73,7 +73,8 @@ python scripts/render_figures.py --sweep data/sweep/sweep.json   # writes docs/p
 python -m tokenbudget ui --port 8000   # open http://127.0.0.1:8000
 ```
 
-GPU requirements: CUDA with ~16 GB VRAM (bf16), `pip install -e .[gpu,paper,ui]`.
+GPU requirements: CUDA with ~8 GB VRAM (bf16; the 1.3B model loads in ~3 GB,
+leaving headroom for activations and batch), `pip install -e .[gpu,paper,ui]`.
 
 ## Tests
 

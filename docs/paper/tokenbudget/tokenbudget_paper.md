@@ -164,6 +164,19 @@ single sharp line. For comparison, the null families report near-zero survival
 `ringgap`'s cliff is the one measurement in the battery that survives
 resampling.
 
+**Multiple-comparison sensitivity.** The detector runs over eight families
+and eight aggregate curves; with no correction, the headline cliff is 15.8
+points against a 15-point threshold — a 0.8-point margin. We therefore do not
+lean on the *magnitude* of the drop; we lean on three independent observations
+that survive together: (i) `ringgap` is the *only* family whose bootstrap
+survival is material (61.5% vs ≤0.4% for the null families), (ii) the drop
+replicates across difficulties d3–d5 (each falling 0.45–0.85 at the same
+operating point), and (iii) the d3–d5 rows are *monotone* in difficulty, which
+a threshold artifact would not produce. A stricter 20-point threshold keeps
+the d4–d5 drops (0.55–0.85) but discards d3 (0.45); the qualitative claim —
+fine-gap localization is the budget-fragile capability — does not depend on the
+exact threshold.
+
 ### 3.3 Per-element counting is capacity-limited, not budget-limited
 
 `count` does *not* erode with budget. The aggregate curve is flat at 0.44–0.56
