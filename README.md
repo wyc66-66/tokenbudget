@@ -13,7 +13,7 @@ quietly breaks as the budget shrinks.
 
 MiniCPM-V 4.6's `downsample_mode` gives two operating points — 4x (more tokens)
 and 16x (edge-friendly). Combined with input resolution, we get a budget axis
-from ~82 to ~2600 vision tokens. We ask:
+from 82 to 2,598 vision tokens. We ask:
 
 > **Which perception capabilities survive aggressive token compression,
 > and which collapse first?**
@@ -74,6 +74,14 @@ python -m tokenbudget ui --port 8000   # open http://127.0.0.1:8000
 ```
 
 GPU requirements: CUDA with ~16 GB VRAM (bf16), `pip install -e .[gpu,paper,ui]`.
+
+## Tests
+
+```bash
+python -m pytest -q        # 14 tests: answer normalization, cliff detection, bootstrap stability
+```
+
+CI (`.github/workflows/ci.yml`) runs the suite on every push to `main`.
 
 ## Key numbers
 

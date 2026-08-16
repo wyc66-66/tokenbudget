@@ -111,8 +111,9 @@ The honest reading is more interesting than a clean split:
   per-difficulty numbers (0.85 down to 0.10) is an artifact of comparing the
   easiest difficulty at full budget against the hardest at the tightest budget.
   As an aggregate capability, counting accuracy is nearly flat across the whole
-  budget axis (0.46–0.51). The bottleneck for counting on this model is the
-  model's *capacity*, not the token budget.
+  budget axis (0.44–0.56, all within Wilson noise of each other; the mid-axis
+  4x@448 point is the peak at 0.56 rather than a dip). The bottleneck for
+  counting on this model is the model's *capacity*, not the token budget.
 - **`detail` is fully robust even at 82 tokens**, while `ringgap` collapses —
   both ask *which* of two rows carries a gap, and both reach a 1 px gap at
   their hardest difficulty. The distinguishing property is the geometry:
@@ -165,9 +166,11 @@ resampling.
 
 ### 3.3 Per-element counting is capacity-limited, not budget-limited
 
-`count` does *not* erode with budget. The aggregate curve is flat at 0.46–0.51
-across the whole axis, and the per-difficulty extremes (0.85 at easiest/full,
-0.10 at hardest/tight) reflect difficulty and model capacity, not compression.
+`count` does *not* erode with budget. The aggregate curve is flat at 0.44–0.56
+across the whole axis — the widest spread is the mid-axis 4x@448 point at 0.56,
+with no monotone trend in either direction — and the per-difficulty extremes
+(0.85 at easiest/full, 0.10 at hardest/tight) reflect difficulty and model
+capacity, not compression.
 This is the correct null result: on a 1.3B edge MLLM, counting small dot sets
 is already near chance at full budget, so compression cannot be blamed for a
 failure that is present at 2,598 tokens. Any deployment claim about counting
