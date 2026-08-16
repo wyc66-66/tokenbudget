@@ -334,6 +334,18 @@ single sharp line. For comparison, the null families report near-zero survival
 (<code>count</code> 0.4%, <code>mlread</code> 0.0%) — the detector is not trigger-happy, and
 <code>ringgap</code>'s cliff is the one measurement in the battery that survives
 resampling.</p>
+<p><strong>Multiple-comparison sensitivity.</strong> The detector runs over eight families
+and eight aggregate curves; with no correction, the headline cliff is 15.8
+points against a 15-point threshold — a 0.8-point margin. We therefore do not
+lean on the <em>magnitude</em> of the drop; we lean on three independent observations
+that survive together: (i) <code>ringgap</code> is the <em>only</em> family whose bootstrap
+survival is material (61.5% vs ≤0.4% for the null families), (ii) the drop
+replicates across difficulties d3–d5 (each falling 0.45–0.85 at the same
+operating point), and (iii) the d3–d5 rows are <em>monotone</em> in difficulty, which
+a threshold artifact would not produce. A stricter 20-point threshold keeps
+the d4–d5 drops (0.55–0.85) but discards d3 (0.45); the qualitative claim —
+fine-gap localization is the budget-fragile capability — does not depend on the
+exact threshold.</p>
 <h3>3.3 Per-element counting is capacity-limited, not budget-limited</h3>
 <p><code>count</code> does <em>not</em> erode with budget. The aggregate curve is flat at 0.44–0.56
 across the whole axis — the widest spread is the mid-axis 4x@448 point at 0.56,
