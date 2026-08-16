@@ -18,23 +18,30 @@ Edge multimodal LLMs must fit inside a compute envelope. The dominant lever is t
 
 "Fewer tokens" and "less perceptive" are not the same thing. Some capabilities degrade gracefully; others fail catastrophically once the budget passes a threshold. This project maps that landscape with a controlled, procedurally-generated perception battery — tasks with known ground truth and a calibrated difficulty axis — and reports where perception *quietly breaks*, and where it does not.
 
-The question sits squarely inside the design space Yao et al. opened with MiniCPM-V [1]: the original paper established that a GPT-4V-level MLLM can run on a phone by aggressive token efficiency, and the 4.6 release makes the compression *explicit* as a deployable knob (4x/16x native downsample modes [2]). What neither the paper nor the model card answers is the *decomposed* question — compression reports one aggregate number, but perception is not one capability. An on-device developer choosing between 4x and 16x needs to know which *specific* skills (reading, counting, locating, color matching) pay for the token savings and which silently break. That is the gap this report fills: per-capability, per-difficulty degradation curves across the full budget axis of the very model this lab ships.
+The question sits squarely inside the design space Yao et al. opened with MiniCPM-V [1]: the original paper established that a GPT-4V-level MLLM can run on a phone by aggressive token efficiency, and the 4.6 release makes the compression *explicit* as a deployable knob (4x/16x native downsample modes [2]). The model couples a SigLIP 2 vision encoder [3] — built on the sigmoid-loss objective introduced by SigLIP [11] — with a 0.8B language model, which is what makes the whole stack edge-runnable. What neither the paper nor the model card answers is the *decomposed* question — compression reports one aggregate number, but perception is not one capability. An on-device developer choosing between 4x and 16x needs to know which *specific* skills (reading, counting, locating, color matching) pay for the token savings and which silently break. That is the gap this report fills: per-capability, per-difficulty degradation curves across the full budget axis of the very model this lab ships.
 
 ## 2. Method
 
 ### 2.1 Probe corpus
 
-Images are rendered deterministically with PIL primitives only. Each family varies a single *spatial-frequency / information-density* axis as difficulty rises. Every probe carries an exact ground-truth answer, and the question offers a closed set of answer options so scoring is unambiguous.
+Images are rendered with PIL primitives (no image assets, no external
+datasets). Text-bearing families (`ocr`, `mlread`) use the first available
+system TrueType font from a fixed candidate list; glyph rendering is therefore
+deterministic within a machine but not byte-identical across machines without
+those fonts installed. Each family varies a single *spatial-frequency /
+information-density* axis as difficulty rises. Every probe carries an exact
+ground-truth answer, and the question offers a closed set of answer options so
+scoring is unambiguous.
 
 | family | task | difficulty axis |
 |---|---|---|
 | `ocr` | read a 5-digit number | font size 96→16 px, additive noise |
-| `count` | count same-color dots | 3→24 dots, shrinking radius |
+| `count` | count same-color dots | 3→8 dots, shrinking radius |
 | `mlread` | read the 2nd line of a digit column | 2→8 lines |
 | `colcnt` | count red cells in a dense color grid | 8→30 cells |
 | `spatial` | which color is on the left | square size, distractors |
 | `color` | closest anchor hue (red/orange/pink) | hue offset 40→7 |
-| `detail` | which row of rings has a gap | gap 12→1 px |
+| `detail` | which row of rings has a gap | gap 10→1 px |
 | `ringgap` | which row of thin rings has a 1px gap | ring radius 60→18 px |
 
 20 seeds × 6 difficulties × 8 families = **960 probes**, rendered at 512×512 and downscaled to the configuration resolution at evaluation time.
@@ -53,6 +60,10 @@ Six budget points. Token counts are *measured* by the engine itself (image-token
 | `4x@1280` | 4x | 1280 px | 2598 |
 
 The budget axis is thus non-uniform: 82 → 274 → 347 → 678 → 1307 → 2598, spanning more than a factor of 30.
+
+![Figure 2](figures/fig2_budget.png)
+
+*Figure 2 — The six budget points, ranked by measured vision-token count.*
 
 ### 2.3 Scoring and analysis
 
@@ -84,9 +95,13 @@ Per-family aggregate accuracy at the richest and tightest budget points:
 
 ![Figure 1](figures/fig1_decay.png)
 
-*Figure 1 — Per-family accuracy vs vision-token budget (log axis, right = richest budget). One line per difficulty level; the red dashed line marks a detected cliff.*
+*Figure 1 — Per-family accuracy vs vision-token budget (log axis; left = tightest budget, right = richest). One line per difficulty level; the red dashed line marks a detected cliff.*
 
 The honest reading is more interesting than a clean split:
+
+![Figure 3](figures/fig3_sensitivity.png)
+
+*Figure 3 — Sensitivity ranking: best-budget minus worst-budget aggregate accuracy per family. Only `ringgap` clears the 0.15 cliff threshold.*
 
 - **Exactly one task family shows a real, aggregate-level cliff: `ringgap`.**
   Everything else either stays within noise of its rich-budget level (`ocr`,
@@ -99,11 +114,15 @@ The honest reading is more interesting than a clean split:
   budget axis (0.46–0.51). The bottleneck for counting on this model is the
   model's *capacity*, not the token budget.
 - **`detail` is fully robust even at 82 tokens**, while `ringgap` collapses —
-  both are "detect a gap" tasks at similar difficulty. The distinguishing
-  property is what the answer requires: `detail` asks *whether* a coarse gap
-  exists (recoverable from low-frequency content), while `ringgap` asks *which*
-  of several thin rings carries a 1px gap (requires per-element binding near the
-  model's resolution limit).
+  both ask *which* of two rows carries a gap, and both reach a 1 px gap at
+  their hardest difficulty. The distinguishing property is the geometry:
+  `detail` shrinks the gap width (10→1 px) while keeping large, thick rings
+  (radius 66→36 px, stroke 9→4 px), so for most difficulties the gap is a
+  coarse feature recoverable from low-frequency content; `ringgap` pins the gap
+  at 1 px and instead shrinks the ring itself (radius 60→18 px, stroke 6→3 px),
+  forcing the model to bind a 1-px feature on a small ring — precisely the
+  per-element, high-frequency requirement that a 16x token budget cannot
+  afford.
 
 ### 3.2 The cliff: ring-gap detection
 
@@ -132,6 +151,18 @@ wrong-but-better-than-random on the hardest items. We flag this explicitly
 because a naive cliff detector reports the 347-token dip as the breakpoint; the
 full curve shows a V-shaped failure mode rather than a monotone collapse.
 
+**Cliff stability.** The cliff location is not just a point estimate on n=20
+per budget point: bootstrapping each budget point's binary outcomes (1000
+resamples, fixed seed) and re-running the same detector finds the cliff
+surviving in 61.5% of draws, with a location CI of [3, 5] on the budget index —
+median at `16x@672` (the 347-token point). The remaining ~38% of draws place
+no cliff at all: at n=20 the *direction* is clear but the exact breakpoint has
+real sampling variance, and we report that honestly rather than drawing a
+single sharp line. For comparison, the null families report near-zero survival
+(`count` 0.4%, `mlread` 0.0%) — the detector is not trigger-happy, and
+`ringgap`'s cliff is the one measurement in the battery that survives
+resampling.
+
 ### 3.3 Per-element counting is capacity-limited, not budget-limited
 
 `count` does *not* erode with budget. The aggregate curve is flat at 0.46–0.51
@@ -148,9 +179,9 @@ under compression must first establish the full-budget baseline.
 in the battery, but its difficulty does **not** come from compression. The
 aggregate sits at 0.24–0.48 across the whole axis with no monotone trend
 (0.29 at the richest configuration, 0.40 at the tightest, peak 0.48 mid-axis),
-and per-difficulty accuracy ranges from 0.15 (hardest) to 0.75 (easiest) at
-every budget. The single largest step drop (0.20) happens *between the two
-richest mid-axis configurations* (`4x@672` → `16x@1280`), i.e. across a
+and per-difficulty accuracy spans 0.05–0.75 across the axis (e.g. 0.15–0.75 at
+the tightest configuration). The single largest step drop (0.20) happens *between
+the two richest mid-axis configurations* (`4x@672` → `16x@1280`), i.e. across a
 compression-mode boundary, not toward the tight end of the axis. This is a
 difficulty/heterogeneity effect, not a budget effect. Like `count`, this task
 exceeds what a 1.3B edge MLLM can do reliably even at full budget; it documents
@@ -216,23 +247,24 @@ a capacity limit.
 
 ### 4.4 Related work
 
-Visual-token reduction is an active design axis for multimodal LLMs. The
-closest line of work compresses tokens with learned projectors or prunes them
-during inference: TokenPacker reduces 75–89% of visual tokens at the projector
-with a coarse-to-fine scheme [4]; FastV prunes low-attention visual tokens in
-deep layers of an LVLM at inference time [5]; EViT reorganizes inattentive
-patches in a ViT backbone [6]; AIM merges similar tokens before the LLM and
-progressively prunes within layers, cutting FLOPs ~7× with minimal accuracy
-loss [9]. A second line studies how input resolution and tiling change
-perception on high-resolution benchmarks — e.g. LLaVA-UHD's dynamic slicing
-[7], Qwen2-VL's "native resolution" [8], and MiniCPM-V's own 4x/16x downsample
-modes [1,2]. What these studies measure is *aggregate* benchmark accuracy after
-compression. This report complements them with a controlled probe battery that
-keeps the image content fixed and sweeps only the budget knobs, so the
-per-capability fate of individual skills (reading, counting, localizing, hue
-matching) is visible rather than averaged away. It also adds the
-aggregate-vs-per-difficulty distinction, which we found is the difference
-between a spurious "clean split" and a truthful "one real cliff" conclusion.
+Visual-token reduction is an active design axis for multimodal LLMs; the
+broader push toward efficient inference is surveyed in [10], and the closest
+line of work compresses tokens with learned projectors or prunes them during
+inference: TokenPacker reduces 75–89% of visual tokens at the projector with a
+coarse-to-fine scheme [4]; FastV prunes low-attention visual tokens in deep
+layers of an LVLM at inference time [5]; EViT reorganizes inattentive patches in
+a ViT backbone [6]; AIM merges similar tokens before the LLM and progressively
+prunes within layers, cutting FLOPs ~7× with minimal accuracy loss [9]. A second
+line studies how input resolution and tiling change perception on
+high-resolution benchmarks — e.g. LLaVA-UHD's dynamic slicing [7], Qwen2-VL's
+"native resolution" [8], and MiniCPM-V's own 4x/16x downsample modes [1,2]. What these studies measure is *aggregate*
+benchmark accuracy after compression. This report complements them with a
+controlled probe battery that keeps the image content fixed and sweeps only the
+budget knobs, so the per-capability fate of individual skills (reading,
+counting, localizing, hue matching) is visible rather than averaged away. It
+also adds the aggregate-vs-per-difficulty distinction, which we found is the
+difference between a spurious "clean split" and a truthful "one real cliff"
+conclusion.
 
 ### 4.5 Limitations
 
@@ -261,7 +293,7 @@ pip install -e .[gpu,paper,ui]
 python scripts/build_probes.py --seeds 20 --out data/probes   # 960 probes
 python scripts/run_sweep.py --probes data/probes --out data/sweep   # GPU, ~4h
 python scripts/paper_facts.py --sweep data/sweep/sweep.json   # derived claims
-python scripts/render_figures.py --sweep data/sweep/sweep.json --figs docs/figures
+python scripts/render_figures.py --sweep data/sweep/sweep.json   # writes docs/paper/tokenbudget/figures/fig{1,2,3}_*.png
 python scripts/render_tokenbudget_paper.py   # this report (HTML + PDF)
 python -m tokenbudget ui --port 8000         # interactive console
 ```
@@ -273,13 +305,13 @@ from it directly.
 ## References
 
 1. Yao Y., Yu T., Zhang A., Wang C., et al. MiniCPM-V: A GPT-4V Level MLLM on Your Phone. *arXiv:2408.01800*, 2024.
-2. OpenBMB. MiniCPM-V 4.6 technical report (2026), native 4x/16x vision-token downsample modes. *openbmb/MiniCPM-V-4.6*.
-3. Li Z., Cao S., et al. SigLIP 2: Multilingual Vision-Language Encoders with Improved Semantic Understanding, Localization, and Dense Features. *arXiv:2502.14786*, 2025.
+2. OpenBMB. MiniCPM-V 4.6 — model card (native 4x/16x vision-token downsample modes, SigLIP2-400M vision encoder, Qwen3.5-0.8B LLM). *Hugging Face: openbmb/MiniCPM-V-4.6*.
+3. Tschannen M., et al. SigLIP 2: Multilingual Vision-Language Encoders with Improved Semantic Understanding, Localization, and Dense Features. *arXiv:2502.14786*, 2025.
 4. Li W., Yuan Y., Liu J., et al. TokenPacker: Efficient Visual Projector for Multimodal LLM. *arXiv:2407.02392*, IJCV 2025.
 5. Chen L., Zhao H., Liu T., et al. An Image is Worth 1/2 Tokens After Layer 2: Plug-and-Play Inference Acceleration for Large Vision-Language Models. *ECCV 2024*.
 6. Liang Y., Ge C., Tong Z., et al. Not All Patches are What You Need: Expediting Vision Transformers via Token Reorganizations. *ICLR 2022*.
-7. Xu R., Ye Y., Yan Y., et al. LLaVA-UHD: An LMM Perceiving Any Aspect Ratio and High-Resolution Images. *ECCV 2024*.
+7. Guo Z., Xu R., Yao Y., Bao J., Zhang Z., et al. LLaVA-UHD: An LMM Perceiving Any Aspect Ratio and High-Resolution Images. *ECCV 2024*.
 8. Wang P., Bai S., et al. Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution. *arXiv:2409.12191*, 2024.
 9. Zhong Y., Liu Z., Li Y., Wang L. AIM: Adaptive Inference of Multi-Modal LLMs via Token Merging and Pruning. *ICCV 2025*.
-10. Xu Z., et al. Efficient Multimodal Large Language Models: A Survey. *arXiv:2405.10739*, 2024.
+10. Jin Y., Li J., et al. A Survey on Efficient Inference for Large Language Models. *arXiv:2405.10739*, 2024.
 11. Zhai X., Mustafa B., Kolesnikov A., et al. Sigmoid Loss for Language Image Pre-Training (SigLIP). *arXiv:2303.15343*, ICCV 2023.
