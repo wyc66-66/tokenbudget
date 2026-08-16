@@ -78,7 +78,7 @@ python scripts/ringgap_facts.py
 
 # 3. inspect the numbers and render paper figures
 python scripts/paper_facts.py --sweep data/sweep/sweep.json
-python scripts/render_figures.py --sweep data/sweep/sweep.json   # writes docs/paper/tokenbudget/figures/fig{1,2,3}_*.png
+python scripts/render_figures.py --sweep data/sweep/sweep.json --ringgap200 data/sweep_ringgap200/ringgap200.json  # writes docs/paper/tokenbudget/figures/fig{1,2,3}_*.png (fig1/fig3 overlay the n=200 re-measurement)
 
 # 4. local web console
 python -m tokenbudget ui --port 8000   # open http://127.0.0.1:8000

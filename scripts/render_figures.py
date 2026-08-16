@@ -45,7 +45,21 @@ def _diff_color(d: int, n: int) -> str:
     return plt.cm.RdYlGn(0.9 - 0.9 * (d / max(n - 1, 1)))
 
 
-def fig_decay(result: SweepResult, out: Path) -> None:
+def _load_ringgap200(path: Path) -> dict:
+    """Aggregate ringgap200.json into {config: {difficulty: rate}} plus per-config aggregate."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    by_cfg: dict[str, dict[int, float]] = {}
+    agg: dict[str, float] = {}
+    for r in data["greedy"]:
+        cfg, dd = r["config"], r["difficulty"]
+        by_cfg.setdefault(cfg, {})[dd] = r["rate"]
+    for cfg in by_cfg:
+        total = sum(by_cfg[cfg].values())
+        agg[cfg] = total / len(by_cfg[cfg])
+    return {"per_diff": by_cfg, "agg": agg}
+
+
+def fig_decay(result: SweepResult, out: Path, ringgap200: dict | None = None) -> None:
     """One panel per family: accuracy vs budget, one line per difficulty."""
     families = sorted(result.curves)
     n_fam = len(families)
@@ -64,6 +78,22 @@ def fig_decay(result: SweepResult, out: Path) -> None:
                     label=f"d{int(d)}")
             ax.fill_between(c.budget_axis, c.ci_lo, c.ci_hi,
                             color=_diff_color(int(d), len(diffs)), alpha=0.10)
+        if fam == "ringgap" and ringgap200:
+            # overlay the n=200 re-measurement of this cliff family (§3.2)
+            token_of = {
+                "4x@1280": 2598, "4x@672": 1307, "4x@448": 274,
+                "16x@1280": 678, "16x@672": 347, "16x@448": 82,
+            }
+            for d, c in diffs.items():
+                cfg_rates = [(token_of[cfg], r[d]) for cfg, r in
+                             ringgap200["per_diff"].items() if d in r]
+                if cfg_rates:
+                    xs = [x for x, _ in cfg_rates]
+                    ys = [y for _, y in cfg_rates]
+                    ax.plot(xs, ys, "--", color="#111", lw=1.2, ms=0)
+                    ax.scatter(xs, ys, marker="s", s=22, facecolor="none",
+                               edgecolor="#111", zorder=5,
+                               label="d%d n=200" % int(d) if d == 0 else None)
         ax.set_xscale("log")
         ax.set_title(FAMILY_LABELS.get(fam, fam), fontsize=12)
         ax.set_xlabel("vision tokens (log)")
@@ -79,7 +109,10 @@ def fig_decay(result: SweepResult, out: Path) -> None:
             ax.legend(fontsize=7, ncol=2)
     for j in range(n_fam, len(axes)):
         axes[j].axis("off")
-    fig.suptitle("Per-family accuracy vs visual-token budget (MiniCPM-V 4.6)", fontsize=14)
+    title = "Per-family accuracy vs visual-token budget (MiniCPM-V 4.6; n=20 scan)"
+    if ringgap200:
+        title += " · ringgap panel overlays n=200 re-measurement"
+    fig.suptitle(title, fontsize=14)
     fig.tight_layout()
     fig.savefig(out, dpi=160)
     plt.close(fig)
@@ -103,10 +136,17 @@ def fig_budget_table(budget_table: dict, out: Path) -> None:
     plt.close(fig)
 
 
-def fig_sensitivity_ranking(result: SweepResult, out: Path) -> None:
+def fig_sensitivity_ranking(result: SweepResult, out: Path, ringgap200: dict | None = None) -> None:
     """Horizontal bars of best-minus-worst budget accuracy per family."""
     summary = result.summary()
     fams = sorted(summary, key=lambda f: -summary[f]["agg_range"])
+    # the n=200 re-measurement (§3.2) is the authoritative range for ringgap
+    if ringgap200 and "ringgap" in summary:
+        agg = ringgap200["agg"]
+        richest = max(agg.values())
+        tightest = min(agg.values())
+        summary["ringgap"]["agg_range"] = richest - tightest
+        fams = sorted(summary, key=lambda f: -summary[f]["agg_range"])
     fig, ax = plt.subplots(figsize=(9, 0.55 * len(fams)))
     y = range(len(fams))
     ranges = [summary[f]["agg_range"] for f in fams]
@@ -119,6 +159,10 @@ def fig_sensitivity_ranking(result: SweepResult, out: Path) -> None:
         ax.text(r + 0.01, i, f"{r:.2f}", va="center", fontsize=9)
     ax.axvline(0.15, color="r", ls=":", alpha=0.6)
     ax.text(0.16, len(fams) - 0.4, "cliff threshold (0.15)", fontsize=8, color="r")
+    title = "Budget sensitivity ranking (n=20 scan)"
+    if ringgap200:
+        title += " · ringgap bar uses n=200 re-measurement"
+    ax.set_title(title, fontsize=11)
     fig.tight_layout()
     fig.savefig(out, dpi=160)
     plt.close(fig)
@@ -128,17 +172,20 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sweep", default="data/sweep/sweep.json", type=Path)
     ap.add_argument("--figs", default="docs/paper/tokenbudget/figures", type=Path)
+    ap.add_argument("--ringgap200", default=None, type=Path,
+                    help="ringgap200.json to overlay the n=200 re-measurement")
     args = ap.parse_args()
 
     data = json.loads(args.sweep.read_text(encoding="utf-8"))
     result = SweepResult.load(args.sweep)
     args.figs.mkdir(parents=True, exist_ok=True)
+    r200 = _load_ringgap200(args.ringgap200) if args.ringgap200 else None
 
     # Names match what scripts/render_tokenbudget_paper.py embeds, so a fresh
     # run regenerates the committed report exactly.
-    fig_decay(result, args.figs / "fig1_decay.png")
+    fig_decay(result, args.figs / "fig1_decay.png", ringgap200=r200)
     fig_budget_table(data["budget_table"], args.figs / "fig2_budget.png")
-    fig_sensitivity_ranking(result, args.figs / "fig3_sensitivity.png")
+    fig_sensitivity_ranking(result, args.figs / "fig3_sensitivity.png", ringgap200=r200)
 
     print(json.dumps(result.summary(), indent=1))
 
