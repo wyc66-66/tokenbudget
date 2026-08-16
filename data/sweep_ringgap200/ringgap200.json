@@ -1,0 +1,172 @@
+{
+ "model": "openbmb/MiniCPM-V-4.6",
+ "n_seeds": 200,
+ "sampled": 0,
+ "temperature": 1.0,
+ "seed": 0,
+ "greedy": [
+  {
+   "config": "4x@1280",
+   "difficulty": 0,
+   "mode": "4x",
+   "res": 1280,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "4x@1280",
+   "difficulty": 1,
+   "mode": "4x",
+   "res": 1280,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "4x@1280",
+   "difficulty": 2,
+   "mode": "4x",
+   "res": 1280,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "4x@1280",
+   "difficulty": 3,
+   "mode": "4x",
+   "res": 1280,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "4x@1280",
+   "difficulty": 4,
+   "mode": "4x",
+   "res": 1280,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "4x@1280",
+   "difficulty": 5,
+   "mode": "4x",
+   "res": 1280,
+   "correct": 156,
+   "total": 200,
+   "rate": 0.78
+  },
+  {
+   "config": "16x@672",
+   "difficulty": 0,
+   "mode": "16x",
+   "res": 672,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "16x@672",
+   "difficulty": 1,
+   "mode": "16x",
+   "res": 672,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "16x@672",
+   "difficulty": 2,
+   "mode": "16x",
+   "res": 672,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "16x@672",
+   "difficulty": 3,
+   "mode": "16x",
+   "res": 672,
+   "correct": 164,
+   "total": 200,
+   "rate": 0.82
+  },
+  {
+   "config": "16x@672",
+   "difficulty": 4,
+   "mode": "16x",
+   "res": 672,
+   "correct": 95,
+   "total": 200,
+   "rate": 0.475
+  },
+  {
+   "config": "16x@672",
+   "difficulty": 5,
+   "mode": "16x",
+   "res": 672,
+   "correct": 65,
+   "total": 200,
+   "rate": 0.325
+  },
+  {
+   "config": "16x@448",
+   "difficulty": 0,
+   "mode": "16x",
+   "res": 448,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "16x@448",
+   "difficulty": 1,
+   "mode": "16x",
+   "res": 448,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "16x@448",
+   "difficulty": 2,
+   "mode": "16x",
+   "res": 448,
+   "correct": 200,
+   "total": 200,
+   "rate": 1.0
+  },
+  {
+   "config": "16x@448",
+   "difficulty": 3,
+   "mode": "16x",
+   "res": 448,
+   "correct": 180,
+   "total": 200,
+   "rate": 0.9
+  },
+  {
+   "config": "16x@448",
+   "difficulty": 4,
+   "mode": "16x",
+   "res": 448,
+   "correct": 84,
+   "total": 200,
+   "rate": 0.42
+  },
+  {
+   "config": "16x@448",
+   "difficulty": 5,
+   "mode": "16x",
+   "res": 448,
+   "correct": 91,
+   "total": 200,
+   "rate": 0.455
+  }
+ ],
+ "sampled_rows": []
+}

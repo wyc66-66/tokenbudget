@@ -56,6 +56,12 @@ reading and coarse gap detection survive all the way down to 82 vision tokens.
    Wilson 95% CIs. A *cliff* is the first budget step where accuracy drops
    ≥15 points and ≥20 points below the richest configuration.
 
+5. **Cliff re-measurement.** The one family that matters for a deployment
+   decision (`ringgap`) is re-measured at **n=200** (200 seeds, greedy
+   decode) to separate real failure shapes from n=20 sampling noise (§3.2 of
+   the report). The n=200 table is the version the report quotes; the n=20
+   table is kept alongside so the correction is auditable.
+
 ## Reproduce
 
 ```bash
@@ -64,6 +70,11 @@ python scripts/build_probes.py --seeds 20 --out data/probes
 
 # 2. run the budget sweep (GPU, MiniCPM-V 4.6)
 python scripts/run_sweep.py --probes data/probes --out data/sweep
+
+# 2b. n=200 re-measurement of the ringgap cliff (~45 min on an RTX 5070)
+python scripts/build_probes.py --seeds 200 --families ringgap --out data/probes_ringgap200
+python scripts/run_ringgap_focus.py --sampled 0 --out data/sweep_ringgap200
+python scripts/ringgap_facts.py
 
 # 3. inspect the numbers and render paper figures
 python scripts/paper_facts.py --sweep data/sweep/sweep.json
@@ -86,10 +97,12 @@ CI (`.github/workflows/ci.yml`) runs the suite on every push to `main`.
 
 ## Key numbers
 
-`data/sweep/sweep.json` is the single source of truth for the paper. Every
-claim in the report can be traced back to this table. `scripts/paper_facts.py`
-prints the derived claims (budget table, per-family cliffs, sensitivity
-ranking).
+`data/sweep/sweep.json` (n=20 battery) and
+`data/sweep_ringgap200/ringgap200.json` (n=200 cliff re-measurement) are the
+sources of truth for the paper. Every claim in the report can be traced back
+to one of these tables. `scripts/paper_facts.py` and `scripts/ringgap_facts.py`
+print the derived claims (budget table, per-family cliffs, sensitivity
+ranking, V-shape tests).
 
 ## Layout
 

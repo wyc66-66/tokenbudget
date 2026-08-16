@@ -29,7 +29,7 @@ class MiniCPMEngine:
         self.model_path = model_path
 
     @torch.inference_mode()
-    def ask(self, image: Image.Image, question: str, *, downsample_mode: str = "16x", max_slice_nums: int = 9, max_new_tokens: int = 24) -> str:
+    def ask(self, image: Image.Image, question: str, *, downsample_mode: str = "16x", max_slice_nums: int = 9, max_new_tokens: int = 24, temperature: float | None = None) -> str:
         messages = [{"role": "user", "content": [{"type": "image", "image": image}, {"type": "text", "text": question}]}]
         inputs = self.processor.apply_chat_template(
             messages,
@@ -39,7 +39,10 @@ class MiniCPMEngine:
             return_tensors="pt",
             processor_kwargs={"downsample_mode": downsample_mode, "max_slice_nums": max_slice_nums},
         ).to(self.model.device)
-        out = self.model.generate(**inputs, max_new_tokens=max_new_tokens, downsample_mode=downsample_mode)
+        gen_kwargs = dict(max_new_tokens=max_new_tokens, downsample_mode=downsample_mode)
+        if temperature is not None:
+            gen_kwargs.update(do_sample=True, temperature=temperature)
+        out = self.model.generate(**inputs, **gen_kwargs)
         return self.processor.decode(out[0][inputs["input_ids"].shape[-1] :], skip_special_tokens=True).strip()
 
     @torch.inference_mode()
